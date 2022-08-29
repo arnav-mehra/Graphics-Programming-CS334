@@ -24,14 +24,14 @@ FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, 
 	pix = new unsigned int[w * h];
 
 	// add lines!
-	lines.push_back(L3(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)));
-	lines.push_back(L3(V3(0, -200, 0), V3(0, 200, 0), V3(255, 0, 0)));
-	lines.push_back(L3(V3(0, 0, -200), V3(0, 0, 200), V3(255, 0, 0)));
-	lines.push_back(L3(V3(69, 120, -2), V3(32, 49, 81), V3(0, 0, 255)));
+	lines.push_back(LINE(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)));
+	lines.push_back(LINE(V3(0, -200, 0), V3(0, 200, 0), V3(255, 0, 0)));
+	lines.push_back(LINE(V3(0, 0, -200), V3(0, 0, 200), V3(255, 0, 0)));
+	lines.push_back(LINE(V3(69, 120, -2), V3(32, 49, 81), V3(0, 0, 255)));
 
 	// rotate lines to showcase 3D.
 	M33 rotation_matrix = M33(Dim::X, 0.2) * M33(Dim::Y, 0.2);
-	for (L3& line : lines) {
+	for (LINE& line : lines) {
 		line.start = rotation_matrix * line.start;
 		line.start += *origin;
 		line.start[2] = 0;
@@ -48,7 +48,7 @@ void FrameBuffer::draw() {
 
 	// rotate image to show 3D
 	M33 rotation_matrix = M33(Dim::Y, 0.1);
-	for (L3& line : lines) {
+	for (LINE& line : lines) {
 		line.start = rotation_matrix * line.start;
 		line.start[2] = 0;
 		line.end = rotation_matrix * line.end;
@@ -59,7 +59,7 @@ void FrameBuffer::draw() {
 	vector<int[4]> render_boxes(lines.size());
 	vector<bool> rendered_pixels(w * h, false);
 	for (int i = 0; i < lines.size(); i++) {
-		L3& line = lines[i];
+		LINE& line = lines[i];
 		V3& start = line.start;
 		V3& end = line.end;
 		
@@ -113,7 +113,7 @@ void FrameBuffer::draw() {
 				}
 
 				// Compute distance from line.
-				L3& line = lines[i];
+				LINE& line = lines[i];
 				V3 line_vec = line_vecs[i];
 				V3 delta = V3(x, y, 0) - line.start;
 				line_vec *= (delta * line_vec) * inv_dots[i]; // project delta onto line

@@ -12,8 +12,9 @@ public:
 	unsigned int *pix; // pixel array
 	int w, h;
 	V3 *xyz, *origin;
-	vector<L3> lines;
-	vector<P3> points;
+	vector<LINE> lines;
+	vector<POINT> points;
+	vector<POLY> polygons;
 	FrameBuffer(int u0, int v0, int _w, int _h);
 	void draw();
 	void KeyboardHandle();
