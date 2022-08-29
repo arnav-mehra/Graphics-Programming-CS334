@@ -1,6 +1,10 @@
-#include "Dimension.hpp"
-#include "V3.cpp"
+#pragma once
+
+#include <iostream>
 #include <cmath>
+#include "Dimension.hpp"
+#include "V3.hpp"
+
 using namespace std;
 
 class M33 {
@@ -11,42 +15,13 @@ class M33 {
     public:
 
         M33() {}
-
         // identity constructor
-        M33(int i) {
-            (*this)[Dim::X] = V3(1, 0, 0);
-            (*this)[Dim::Y] = V3(0, 1, 0);
-            (*this)[Dim::Z] = V3(0, 0, 1);
-        }
-
-        M33(V3 &v1, V3 &v2, V3 &v3) {
-            (*this)[Dim::X] = v1;
-            (*this)[Dim::Y] = v2;
-            (*this)[Dim::Z] = v3;
-        }
-
-        // rotation constructor
-        M33(Dim dim, float alpha) {
-            float sin_theta = sin(alpha);
-            float cos_theta = cos(alpha);
-            switch (dim) {
-                case Dim::X:
-                    (*this)[Dim::X] = V3(1, 0, 0);
-                    (*this)[Dim::Y] = V3(0, cos_theta, -sin_theta);
-                    (*this)[Dim::Z] = V3(0, sin_theta, cos_theta);
-                    break;
-                case Dim::Y:
-                    (*this)[Dim::X] = V3(cos_theta, 0, sin_theta);
-                    (*this)[Dim::Y] = V3(0, 1, 0);
-                    (*this)[Dim::Z] = V3(-sin_theta, 0, cos_theta);
-                    break;
-                case Dim::Z:
-                    (*this)[Dim::X] = V3(cos_theta, -sin_theta, 0);
-                    (*this)[Dim::Y] = V3(sin_theta, cos_theta, 0);
-                    (*this)[Dim::Z] = V3(0, 0, 1);
-                    break;
-            }
-        }      
+        M33(int i);
+        // vector constructor
+        M33(V3 &v1, V3 &v2, V3 &v3);
+        // rotation constructors
+        M33(Dim dim, float alpha);
+        M33(Dim dim, float sin_theta, float cos_theta);   
 
         friend ostream& operator<<(ostream &out, M33 &matrix);
         friend istream& operator>>(istream &in, M33 &matrix);
@@ -67,5 +42,5 @@ class M33 {
         // Get inverse of matrix.
         M33& inverse();
         M33& inverse_iter(int max_iter);
-        inline V3& conjugate_grad(V3 &b, int maxiter); 
+        inline V3& conjugate_grad(V3 &b, int maxiter);
 };

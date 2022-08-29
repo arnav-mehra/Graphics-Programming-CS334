@@ -1,7 +1,5 @@
 #include <chrono>
-#include "V3.cpp"
-#include "M33.cpp"
-#include "Dimension.hpp"
+
 using namespace std;
 
 void benchmark() {

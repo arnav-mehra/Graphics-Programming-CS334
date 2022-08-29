@@ -1,6 +1,9 @@
-#include "Dimension.hpp"
-#include <cmath>
+#pragma once
+
 #include <iostream>
+#include <cmath>
+#include "Dimension.hpp"
+
 using namespace std;
 
 class V3 {
@@ -11,11 +14,7 @@ class V3 {
     public:
 
         V3() {}
-        V3(float x, float y, float z) {
-            (*this)[Dim::X] = x;
-            (*this)[Dim::Y] = y;
-            (*this)[Dim::Z] = z;
-        }
+        V3(float x, float y, float z);
 
         // Get and Set each Dim value.
         inline float& operator[](Dim dim);
@@ -44,7 +43,7 @@ class V3 {
         // Dot product with another vector.
         inline float operator*(V3& vector);
         // Cross product with another vector.
-        inline V3& operator^(V3& vector);
+        V3& operator^(V3& vector);
 
         // Add and subtract vectors.
         inline V3& operator+(V3& vector);
@@ -53,7 +52,7 @@ class V3 {
         inline void operator-=(V3& vector);
 
         // Rotate point (this) about axis alpha radians
-        void rotate(V3& axis1, V3& axis2, float alpha);
+        inline void rotate(V3& axis1, V3& axis2, float alpha);
         // Rotate vector (this) about vector axis alpha radians
-        void rotate(V3& axis, float alpha);
+        void rotate(V3 axis, float alpha);
 };
