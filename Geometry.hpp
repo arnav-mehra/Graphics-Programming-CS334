@@ -1,73 +1,73 @@
 #pragma once
 
+#include <vector>
+
 #include "V3.hpp"
 
+#define STROKE_WIDTH 4
+
+class COLOR {
+public:
+	V3 color;
+
+	inline unsigned int getColor();
+	inline unsigned int getColor(float c);
+	inline void setColor(float r, float g, float b);
+	inline void setColor(V3& c);
+};
+
+class LINE3 : public COLOR {
+public:
+	V3 start;
+	V3 end;
+
+	LINE3();
+	LINE3(V3& start, V3& end);
+	LINE3(V3& start, V3& end, V3& color);
+};
+
+class POINT3 : public COLOR {
+public:
+	V3 point;
+
+	POINT3();
+	POINT3(V3& point);
+	POINT3(V3& point, V3& color);
+};
+
+class POLY3 : public COLOR {
+public:
+	vector<V3> points;
+
+	POLY3();
+	POLY3(vector<V3>& points);
+	POLY3(vector<V3>& points, V3& color);
+};
+
 class GEOMETRY {
-	public:
-		V3 color;
+public:
+	vector<POINT3> points;
+	vector<LINE3> lines;
+	vector<POLY3> polys;
 
-		inline unsigned int getColor() {
-			unsigned int r = color[0];
-			unsigned int g = color[1];
-			unsigned int b = color[2];
-			return (b << 16) | (g << 8) | r;
-		}
-
-		inline unsigned int getColor(float c) {
-			unsigned int r = color[0] * c;
-			unsigned int g = color[1] * c;
-			unsigned int b = color[2] * c;
-			return (b << 16) | (g << 8) | r;
-		}
+	GEOMETRY();
+	GEOMETRY(GEOMETRY& geometry);
+	GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines, vector<POLY3>& polys);
 };
 
-class LINE : public GEOMETRY {
-	public:
-		V3 start;
-		V3 end;
+class PRECOMPUTE_GEOMETRY {
+public:
+	vector<LINE3> lines; // transformed lines + polygon lines
+	vector<POINT3> points; // transformed points
+	vector<vector<int>> render_boxes; // boxes that contain geometry
+	vector<bool> rendered_pixels; // union of render_boxes
+	vector<V3> line_vecs; // lines: (end - start)
+	vector<float> inv_dots; // lines: 1 / |end - start|^2
 
-		LINE() {}
+	PRECOMPUTE_GEOMETRY();
 
-		LINE(V3& start, V3& end) {
-			this->start = start;
-			this->end = end;
-		}
-
-		LINE(V3& start, V3& end, V3& color) {
-			this->start = start;
-			this->end = end;
-			this->color = color;
-		}
-};
-
-class POINT : public GEOMETRY {
-	public:
-		V3 point;
-
-		POINT() {}
-
-		POINT(V3& point) {
-			this->point = point;
-		}
-
-		POINT(V3& point, V3& color) {
-			this->point = point;
-			this->color = color;
-		}
-};
-
-class POLY : public GEOMETRY {
-	public:
-		vector<V3> points;
-
-		POLY() {}
-
-		POLY(vector<V3>& points) {
-			this->points = points;
-		}
-
-		POLY(vector<V3>& points, V3& color) {
-			this->points = points;
-			this->color = color;
-		}
+	inline void init_coord_rotation();
+	inline void init_render_zones();
+	inline void init_line_precompute();
+	inline V3& transform(V3& v3);
 };

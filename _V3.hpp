@@ -1,9 +1,10 @@
 #pragma once
 
+#include "V3.hpp"
+
 #include <iostream>
 #include <cmath>
-#include "Dimension.hpp"
-#include "V3.hpp"
+
 #include "M33.hpp"
 
 using namespace std;
@@ -26,6 +27,8 @@ ostream& operator<<(ostream& out, V3& vector) {
         << ">\n";
     return out;
 }
+
+V3::V3() {}
 
 V3::V3(float x, float y, float z) {
     (*this)[Dim::X] = x;

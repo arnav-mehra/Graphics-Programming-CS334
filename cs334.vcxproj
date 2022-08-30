@@ -82,6 +82,7 @@
     <ClInclude Include="M33.hpp" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="V3.hpp" />
+    <ClInclude Include="_Geometry.hpp" />
     <ClInclude Include="_M33.hpp" />
     <ClInclude Include="_V3.hpp" />
   </ItemGroup>
@@ -89,6 +90,9 @@
     <ClCompile Include="framebuffer.cpp" />
     <ClCompile Include="gui.cxx" />
     <ClCompile Include="scene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

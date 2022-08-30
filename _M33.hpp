@@ -1,10 +1,9 @@
 #pragma once
 
+#include "M33.hpp"
+
 #include <iostream>
 #include <cmath>
-#include "Dimension.hpp"
-#include "V3.hpp"
-#include "M33.hpp"
 
 using namespace std;
 
@@ -33,6 +32,8 @@ ostream& operator<<(ostream& out, M33& matrix) {
     out << ")\n";
     return out;
 }
+
+M33::M33() {}
 
 M33::M33(int i) {
     (*this)[Dim::X] = V3(1, 0, 0);
