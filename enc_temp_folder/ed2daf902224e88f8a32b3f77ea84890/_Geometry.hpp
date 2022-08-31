@@ -207,5 +207,6 @@ inline void PRECOMPUTE_GEOMETRY::init_line_precompute() {
 inline V3& PRECOMPUTE_GEOMETRY::transform(V3& v3) {
 	V3 new_v3 = scene->perspective * v3;
 	new_v3 += scene->origin;
+	new_v3[2] = 0;
 	return new_v3;
 }

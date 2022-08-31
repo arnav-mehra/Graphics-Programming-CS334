@@ -38,21 +38,15 @@ void FrameBuffer::draw() {
 
 		for (int x = min_x; x <= max_x; x++) {
 			for (int y = min_y; y <= max_y; y++) {
-				int p = y * w + x;
-
 				V3 line_vec = end - start;
-				V3 delta = V3((float)x, (float)y, 0) - start;
-				line_vec *= (delta * line_vec) / (line_vec * line_vec); // project delta onto line
-				float z_value = line_vec[Dim::Z] + start[Dim::Z];
-				if (z_value <= z_index[p]) continue;
-
-				line_vec[Dim::Z] = 0;
+				V3 delta = V3((float)x, (float)y, 0) - line.start;
+				line_vec *= (delta * line_vec) * (line_vec * line_vec); // project delta onto line
 				V3 dist_vec = delta - line_vec;
 				float dist_sq = dist_vec * dist_vec;
 
 				float d = min(STROKE_WIDTH * STROKE_WIDTH * 0.25f - dist_sq, 5.0f);
 				if (d >= 0) {
-					
+					int p = y * w + x;
 					pix[p] = line.getColor(0.2f * d);
 					break;
 				}
