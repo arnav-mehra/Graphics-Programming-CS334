@@ -140,16 +140,6 @@ void M33::transpose() {
     swap((*this)[2][1], (*this)[1][2]);
 }
 
-M33& M33::inverse() {
-    V3 col1 = (*this)[1] ^ (*this)[2];
-    float det = (*this)[0] * col1;
-    if (det == 0) return M33();
-    V3 col2 = (*this)[2] ^ (*this)[0];
-    V3 col3 = (*this)[0] ^ (*this)[1];
-    M33* inv = new M33(col1, col2, col3);
-    return *inv;
-}
-
 M33& M33::inverse_iter(int max_iter) {
     M33* inverse = new M33();
     V3 v1 = V3(1, 0, 0);
@@ -162,7 +152,7 @@ M33& M33::inverse_iter(int max_iter) {
     return *inverse;
 }
 
-// CS314 time (from my HW1 of CS314)!
+// CS314 time (from 1 of my HW assignments)!
 inline V3& M33::conjugate_grad(V3 &b, int maxiter) {
     // A = matrix (this)
     M33 &A = *this;
@@ -191,3 +181,55 @@ inline V3& M33::conjugate_grad(V3 &b, int maxiter) {
     return x;
 }
 
+M33& M33::inverse() {
+    // new 00
+    float det1122 =
+        ((*this)[1][1] * (*this)[2][2]
+        - (*this)[2][1] * (*this)[1][2]);
+    // new 10
+    float det1022 =
+        ((*this)[1][2] * (*this)[2][0]
+        - (*this)[2][2] * (*this)[1][0]);
+    // new 20
+    float det1021 =
+        ((*this)[1][0] * (*this)[2][1]
+        - (*this)[2][0] * (*this)[1][1]);
+    float determinant =
+        (*this)[0][0] * det1122
+        + (*this)[0][1] * det1022
+        + (*this)[0][2] * det1021;
+    
+    // new 01
+    float det0221 =
+        ((*this)[0][2] * (*this)[2][1]
+        - (*this)[0][1] * (*this)[2][2]);
+    // new 11
+    float det0022 =
+        ((*this)[0][0] * (*this)[2][2]
+        - (*this)[0][2] * (*this)[2][0]);
+    // new 21
+    float det0120 =
+        ((*this)[0][1] * (*this)[2][0]
+        - (*this)[0][0] * (*this)[2][1]);
+
+    // new 02
+    float det0112 =
+        ((*this)[0][1] * (*this)[1][2]
+        - (*this)[1][1] * (*this)[0][2]);
+    // new 12
+    float det0210 =
+        ((*this)[0][2] * (*this)[1][0]
+        - (*this)[0][0] * (*this)[1][2]);
+    // new 22
+    float det0011 =
+        ((*this)[0][0] * (*this)[1][1]
+        - (*this)[0][1] * (*this)[1][0]);
+    
+    V3 *v1 = new V3(det1122, det0221, det0112);
+    V3 *v2 = new V3(det1022, det0022, det0210);
+    V3 *v3 = new V3(det1021, det0120, det0011);
+    M33* result = new M33(*v1, *v2, *v3);
+
+    (*result) *= 1 / determinant;
+    return *result;
+}

@@ -166,7 +166,11 @@ inline void PRECOMPUTE_GEOMETRY::init_coord_rotation() {
 
 // create and determine pixels to render
 inline void PRECOMPUTE_GEOMETRY::init_render_zones() {
-	for (LINE3& line : lines) {
+	render_boxes.resize(lines.size());
+	rendered_pixels.resize(scene->w * scene->h, false);
+
+	for (int i = 0; i < lines.size(); i++) {
+		LINE3& line = lines[i];
 		V3& start = line.start;
 		V3& end = line.end;
 
@@ -178,6 +182,7 @@ inline void PRECOMPUTE_GEOMETRY::init_render_zones() {
 		if (max_x >= scene->w) max_x = scene->w - 1;
 		int max_y = (int) max(start[Dim::Y], end[Dim::Y]) + (STROKE_WIDTH / 2);
 		if (max_y >= scene->h) max_y = scene->h - 1;
+		render_boxes[i] = { min_x, min_y, max_x, max_y };
 
 		for (int y = min_y; y <= max_y; y++) {
 			int row = y * scene->w;
@@ -207,5 +212,6 @@ inline void PRECOMPUTE_GEOMETRY::init_line_precompute() {
 inline V3& PRECOMPUTE_GEOMETRY::transform(V3& v3) {
 	V3 new_v3 = scene->perspective * v3;
 	new_v3 += scene->origin;
+	new_v3[2] = 0;
 	return new_v3;
 }
