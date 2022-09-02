@@ -2,20 +2,20 @@
 #include "gui.h"
 #include "scene.h"
 
-void GUI::cb_DBG_i(Fl_Button*, void*) {
-    DBG_cb();
+void GUI::cb_RotatePerspective_i(Fl_Button*, void*) {
+    RotatePerspective_cb();
 }
 
-void GUI::cb_DBG(Fl_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_DBG_i(o,v);
+void GUI::cb_RotatePerspective(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_RotatePerspective_i(o,v);
 }
 
-void GUI::cb_NewButton_i(Fl_Return_Button*, void*) {
-    NewButton_cb();
+void GUI::cb_RotatePoint_i(Fl_Return_Button*, void*) {
+    RotatePoint_cb();
 }
 
-void GUI::cb_NewButton(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_NewButton_i(o,v);
+void GUI::cb_RotatePoint(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_RotatePoint_i(o,v);
 }
 
 GUI::GUI() {
@@ -23,13 +23,13 @@ GUI::GUI() {
         uiw = new Fl_Double_Window(199, 197, "GUI");
         uiw->user_data((void*)(this));
         {
-            Fl_Button* o = new Fl_Button(15, 15, 95, 40, "DBG");
+            Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Rotate Perspective");
             o->selection_color(FL_DARK_RED);
-            o->callback((Fl_Callback*)cb_DBG);
+            o->callback((Fl_Callback*)cb_RotatePerspective);
         } // Fl_Button* o
         {
-            Fl_Return_Button* o = new Fl_Return_Button(30, 80, 110, 100, "NewButton");
-            o->callback((Fl_Callback*)cb_NewButton);
+            Fl_Button* o = new Fl_Button(15, 80, 150, 50, "Rotate Point (2 deg)");
+            o->callback((Fl_Callback*)cb_RotatePoint);
         } // Fl_Return_Button* o
         uiw->end();
     } // Fl_Double_Window* uiw
@@ -44,10 +44,10 @@ void GUI::show() {
     uiw->show();
 }
 
-void GUI::DBG_cb() {
-    scene->DBG();
+void GUI::RotatePerspective_cb() {
+    scene->RotatePerspective();
 }
 
-void GUI::NewButton_cb() {
-    scene->NewButton();
+void GUI::RotatePoint_cb() {
+    scene->RotatePoint();
 }

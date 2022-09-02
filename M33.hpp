@@ -37,6 +37,7 @@ public:
     M33& operator/(float scalar);
 
     // Transpose this matrx.
+    // Note: transposition twice beats recreating matrix.
     void transpose();
         
     // Get inverse of matrix.

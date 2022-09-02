@@ -8,6 +8,9 @@
 #include "_V3.hpp"
 #include "_M33.hpp"
 
+# define PI 3.14159265358979323846
+#define DEG_TO_RAD(x) ((x) * (PI / 180.0f))
+
 using namespace std;
 
 Scene* scene;
@@ -53,15 +56,14 @@ Scene::Scene() {
 	gui->uiw->position(u0+w+u0, v0);
 }
 
-void Scene::DBG() {
+void Scene::RotatePerspective() {
 	perspective = M33(Dim::Y, 0.05f) * perspective;
 	fb->recompute_geometry();
 	fb->SetBGR(0);
 	fb->redraw();
-	cerr << "INFO: ROTATED PERSPECTIVE" << endl;
 }
 
-void Scene::NewButton() {
+void Scene::RotatePoint() {
 	if (!geometry.points.size() || !geometry.lines.size()) {
 		cerr << "UNABLE TO ROTATE POINT, CODE IS LIKELY COMMENTED" << endl;
 	}
@@ -69,9 +71,10 @@ void Scene::NewButton() {
 	V3& p = geometry.points[0].point;
 	LINE3& axis = geometry.lines[0];
 		
-	float thetha = frame * (3.14f / 180.0f);
-	p.rotate(axis.start, axis.end, 2 * .0174);
+	float thetha = DEG_TO_RAD(frame);
+	p.rotate(axis.start, axis.end, DEG_TO_RAD(2));
 	cerr << p;
+
 	float x = frame * 1.0f;
 	geometry.points.push_back(
 		POINT3(V3(x, p[Dim::X], 0), V3(255, 0, 0))
@@ -87,5 +90,4 @@ void Scene::NewButton() {
 	fb->recompute_geometry();
 	fb->SetBGR(0);
 	fb->redraw();
-	cerr << "INFO: pressed New button on GUI" << endl;
 }

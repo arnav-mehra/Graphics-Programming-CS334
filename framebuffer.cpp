@@ -27,8 +27,8 @@ FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, 
 }
 
 void FrameBuffer::draw() {
-	cout << "DRAWING.";
-	auto time_start = std::chrono::system_clock::now();
+	// auto time_start = std::chrono::system_clock::now();
+
 	vector<float> z_index(w * h, FLT_MAX);
 
 	for (LINE3& line : precompute.lines) {
@@ -114,8 +114,8 @@ void FrameBuffer::draw() {
 		}
 	}
 
-	auto time_end = std::chrono::system_clock::now();
-	cout << "RENDERED IN: " << (time_end - time_start).count() * 1e-6 << "\n";
+	// auto time_end = std::chrono::system_clock::now();
+	// cout << "RENDERED IN: " << (time_end - time_start).count() * 1e-6 << "\n";
 	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 }
 

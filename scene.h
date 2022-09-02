@@ -19,8 +19,8 @@ public:
 	GEOMETRY geometry;
 
 	Scene();
-	void DBG();
-	void NewButton();
+	void RotatePerspective();
+	void RotatePoint();
 };
 
 extern Scene *scene;
