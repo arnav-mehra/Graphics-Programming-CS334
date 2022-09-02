@@ -70,6 +70,14 @@ POLY3::POLY3(vector<V3>& points, V3& color) {
 
 GEOMETRY::GEOMETRY() {
 	points = {
+		POINT3(V3(50, 50, 50), V3(0, 255, 0)),
+		POINT3(V3(50, -50, 50), V3(0, 255, 0)),
+		POINT3(V3(-50, 50, 50), V3(0, 255, 0)),
+		POINT3(V3(-50, -50, 50), V3(0, 255, 0)),
+		POINT3(V3(50, 50, -50), V3(0, 255, 0)),
+		POINT3(V3(50, -50, -50), V3(0, 255, 0)),
+		POINT3(V3(-50, 50, -50), V3(0, 255, 0)),
+		POINT3(V3(-50, -50, -50), V3(0, 255, 0)),
 	};
 	lines = {
 		LINE3(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)),
@@ -103,6 +111,23 @@ GEOMETRY::GEOMETRY() {
 	};
 }
 
+GEOMETRY::GEOMETRY(vector<POINT3>& points) {
+	this->points = points;
+}
+
+GEOMETRY::GEOMETRY(vector<LINE3>& lines) {
+	this->lines = lines;
+}
+
+GEOMETRY::GEOMETRY(vector<POLY3>& polys) {
+	this->polys = polys;
+}
+
+GEOMETRY::GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines) {
+	this->points = points;
+	this->lines = lines;
+}
+
 GEOMETRY::GEOMETRY(GEOMETRY& geometry) {
 	lines = geometry.lines;
 	points = geometry.points;
@@ -110,19 +135,19 @@ GEOMETRY::GEOMETRY(GEOMETRY& geometry) {
 }
 
 GEOMETRY::GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines, vector<POLY3>& polys) {
-	lines = lines;
-	points = points;
-	polys = polys;
+	this->lines = lines;
+	this->points = points;
+	this->polys = polys;
 }
 
-PRECOMPUTE_GEOMETRY::PRECOMPUTE_GEOMETRY() {
-	init_coord_rotation();
-	init_render_zones();
-	init_line_precompute();
+void GEOMETRY::add_axis() {
+	lines.push_back(LINE3(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)));
+	lines.push_back(LINE3(V3(0, -200, 0), V3(0, 200, 0), V3(255, 0, 0)));
+	lines.push_back(LINE3(V3(0, 0, -200), V3(0, 0, 200), V3(255, 0, 0)));
 }
 
 // rotate + copy geometry
-inline void PRECOMPUTE_GEOMETRY::init_coord_rotation() {
+PRECOMPUTE_GEOMETRY::PRECOMPUTE_GEOMETRY() {
 	GEOMETRY& geometry = scene->geometry;
 
 	// resize vectors
@@ -164,54 +189,9 @@ inline void PRECOMPUTE_GEOMETRY::init_coord_rotation() {
 	}
 }
 
-// create and determine pixels to render
-inline void PRECOMPUTE_GEOMETRY::init_render_zones() {
-	render_boxes.resize(lines.size());
-	rendered_pixels.resize(scene->w * scene->h, false);
-
-	for (int i = 0; i < lines.size(); i++) {
-		LINE3& line = lines[i];
-		V3& start = line.start;
-		V3& end = line.end;
-
-		int min_x = (int) min(start[Dim::X], end[Dim::X]) - (STROKE_WIDTH / 2);
-		if (min_x < 0) min_x = 0;
-		int min_y = (int) min(start[Dim::Y], end[Dim::Y]) - (STROKE_WIDTH / 2);
-		if (min_y < 0) min_y = 0;
-		int max_x = (int) max(start[Dim::X], end[Dim::X]) + (STROKE_WIDTH / 2);
-		if (max_x >= scene->w) max_x = scene->w - 1;
-		int max_y = (int) max(start[Dim::Y], end[Dim::Y]) + (STROKE_WIDTH / 2);
-		if (max_y >= scene->h) max_y = scene->h - 1;
-		render_boxes[i] = { min_x, min_y, max_x, max_y };
-
-		for (int y = min_y; y <= max_y; y++) {
-			int row = y * scene->w;
-			for (int x = min_x; x <= max_x; x++) {
-				int p = row + x;
-				rendered_pixels[p] = true;
-			}
-		}
-	}
-}
-
-// line_vec and inv dot precompute
-inline void PRECOMPUTE_GEOMETRY::init_line_precompute() {
-	line_vecs.resize(lines.size());
-	inv_dots.resize(lines.size());
-
-	for (int i = 0; i < lines.size(); i++) {
-		V3& start = lines[i].start;
-		V3& end = lines[i].end;
-		V3 line_vec = end - start;
-		line_vecs[i] = line_vec;
-		inv_dots[i] = 1 / (line_vec * line_vec);
-	}
-}
-
 // rotate + translate each V3 depending on perspective + origin. 
 inline V3& PRECOMPUTE_GEOMETRY::transform(V3& v3) {
 	V3 new_v3 = scene->perspective * v3;
 	new_v3 += scene->origin;
-	new_v3[2] = 0;
 	return new_v3;
 }

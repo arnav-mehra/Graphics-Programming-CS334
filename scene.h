@@ -12,6 +12,7 @@ public:
 	FrameBuffer *fb;
 
 	int w, h;
+	int frame;
 
 	M33 perspective;
 	V3 origin;

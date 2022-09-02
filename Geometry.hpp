@@ -4,8 +4,6 @@
 
 #include "V3.hpp"
 
-#define STROKE_WIDTH 4
-
 class COLOR {
 public:
 	V3 color;
@@ -50,24 +48,27 @@ public:
 	vector<LINE3> lines;
 	vector<POLY3> polys;
 
+	// preloaded geometry (check function for details)
 	GEOMETRY();
+
 	GEOMETRY(GEOMETRY& geometry);
+
+	GEOMETRY(vector<POINT3>& points);
+	GEOMETRY(vector<LINE3>& lines);
+	GEOMETRY(vector<POLY3>& polys);
+
+	GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines);
 	GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines, vector<POLY3>& polys);
+
+	void add_axis();
 };
 
 class PRECOMPUTE_GEOMETRY {
 public:
 	vector<LINE3> lines; // transformed lines + polygon lines
 	vector<POINT3> points; // transformed points
-	vector<vector<int>> render_boxes; // boxes that contain geometry
-	vector<bool> rendered_pixels; // union of render_boxes
-	vector<V3> line_vecs; // lines: (end - start)
-	vector<float> inv_dots; // lines: 1 / |end - start|^2
 
 	PRECOMPUTE_GEOMETRY();
 
-	inline void init_coord_rotation();
-	inline void init_render_zones();
-	inline void init_line_precompute();
 	inline V3& transform(V3& v3);
 };

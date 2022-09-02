@@ -57,12 +57,12 @@ inline float V3::size() { return this->length(); }
 inline float V3::magnitude() { return this->length(); }
 
 inline V3& V3::operator*(float scalar) {
-    V3* result = new V3(
+    V3 result = V3(
         (*this)[Dim::X] * scalar,
         (*this)[Dim::Y] * scalar,
         (*this)[Dim::Z] * scalar
     );
-    return *result;
+    return result;
 }
 
 inline void V3::operator*=(float scalar) {
@@ -71,8 +71,8 @@ inline void V3::operator*=(float scalar) {
     (*this)[Dim::Z] *= scalar;
 }
 
-inline void V3::operator/(float scalar) {
-    (*this) * (1 / scalar);
+inline V3& V3::operator/(float scalar) {
+    return (*this) * (1 / scalar);
 }
 
 inline void V3::operator/=(float scalar) {
@@ -111,26 +111,26 @@ inline float V3::operator*(V3& vector) {
 }
 
 V3& V3::operator^(V3& vector) {
-    V3* result  = new V3();
-    (*result)[Dim::X] =
+    V3 result  = V3();
+    result[Dim::X] =
         (*this)[Dim::Y] * vector[Dim::Z]
         - (*this)[Dim::Z] * vector[Dim::Y];
-    (*result)[Dim::Y] =
+    result[Dim::Y] =
         (*this)[Dim::Z] * vector[Dim::X]
         - (*this)[Dim::X] * vector[Dim::Z];
-    (*result)[Dim::Z] =
+    result[Dim::Z] =
         (*this)[Dim::X] * vector[Dim::Y]
         - (*this)[Dim::Y] * vector[Dim::X];
-    return *result;
+    return result;
 }
 
 inline V3& V3::operator+(V3& vector) {
-    V3* result  = new V3(
+    V3 result = V3(
         (*this)[Dim::X] + vector[Dim::X],
         (*this)[Dim::Y] + vector[Dim::Y],
         (*this)[Dim::Z] + vector[Dim::Z]
     );
-    return *result;
+    return result;
 }
 
 inline void V3::operator+=(V3& vector) {
@@ -140,12 +140,12 @@ inline void V3::operator+=(V3& vector) {
 }
 
 inline V3& V3::operator-(V3& vector) {
-    V3* result  = new V3(
+    V3 result = V3(
         (*this)[Dim::X] - vector[Dim::X],
         (*this)[Dim::Y] - vector[Dim::Y],
         (*this)[Dim::Z] - vector[Dim::Z]
     );
-    return *result;
+    return result;
 }
 
 inline void V3::operator-=(V3& vector) {

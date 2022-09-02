@@ -33,12 +33,14 @@ public:
     V3& operator*(V3& vector);
     void operator*=(float scalar);
     M33& operator*(float scalar);
+    void operator/=(float scalar);
+    M33& operator/(float scalar);
 
     // Transpose this matrx.
     void transpose();
         
     // Get inverse of matrix.
-    M33& inverse();
+    inline M33& inverse();
     M33& inverse_iter(int max_iter);
     inline V3& conjugate_grad(V3 &b, int maxiter);
 };

@@ -30,7 +30,7 @@ public:
     // Multiply and divide vector by scalar.
     inline V3& operator*(float scalar);
     inline void operator*=(float scalar);
-    inline void operator/(float scalar);
+    inline V3& operator/(float scalar);
     inline void operator/=(float scalar);
 
     // Normalize vector (scale magnitude to 1).

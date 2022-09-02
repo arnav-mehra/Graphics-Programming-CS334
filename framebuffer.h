@@ -20,4 +20,7 @@ public:
 	void KeyboardHandle();
 	int handle(int guievent);
 	void SetBGR(unsigned int bgr);
+	void recompute_geometry() {
+		precompute = PRECOMPUTE_GEOMETRY();
+	}
 };
