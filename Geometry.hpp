@@ -4,71 +4,94 @@
 
 #include "V3.hpp"
 
-class COLOR {
-public:
-	V3 color;
+#define COLOR(r,g,b) (((b) << 16) | ((g) << 8) | (r))
 
-	inline unsigned int getColor();
-	inline unsigned int getColor(float c);
-	inline void setColor(float r, float g, float b);
-	inline void setColor(V3& c);
+#define DOT_SIZE 50
+#define STROKE_WIDTH 4
+const int HALF_DOT = DOT_SIZE >> 1;
+const int HALF_DOT_SQUARE = HALF_DOT * HALF_DOT;
+const int HALF_STROKE = STROKE_WIDTH >> 1;
+const float HALF_STROKE_SQUARE = HALF_STROKE * HALF_STROKE;
+
+typedef unsigned int U32;
+
+class GEO_META {
+public:
+	U32 width;
+	U32 color;
+	inline U32 scaleColor(float c);
 };
 
-class LINE3 : public COLOR {
+class SEGMENT : public GEO_META {
 public:
 	V3 start;
 	V3 end;
 
-	LINE3();
-	LINE3(V3& start, V3& end);
-	LINE3(V3& start, V3& end, V3& color);
+	SEGMENT();
+	SEGMENT(V3& start, V3& end);
+	SEGMENT(V3& start, V3& end, U32 color);
+	SEGMENT(V3& start, V3& end, U32 color, U32 width);
 };
 
-class POINT3 : public COLOR {
+class SPHERE : public GEO_META {
 public:
 	V3 point;
 
-	POINT3();
-	POINT3(V3& point);
-	POINT3(V3& point, V3& color);
+	SPHERE();
+	SPHERE(V3& point);
+	SPHERE(V3& point, U32 color);
+	SPHERE(V3& point, U32 color, U32 width);
 };
 
-class POLY3 : public COLOR {
+class TRIANGLE : public GEO_META {
 public:
-	vector<V3> points;
+	V3 spheres[3];
 
-	POLY3();
-	POLY3(vector<V3>& points);
-	POLY3(vector<V3>& points, V3& color);
+	TRIANGLE();
+	TRIANGLE(V3 (&spheres)[3]);
+	TRIANGLE(V3 (&spheres)[3], U32 color);
+	TRIANGLE(V3(&spheres)[3], U32 color, U32 width);
 };
 
 class GEOMETRY {
 public:
-	vector<POINT3> points;
-	vector<LINE3> lines;
-	vector<POLY3> polys;
+	int num_spheres = 0;
+	int num_segments = 0;
+	int num_triangles = 0;
+	SPHERE spheres[100];
+	SEGMENT segments[100];
+	TRIANGLE triangles[100];
 
 	// preloaded geometry (check function for details)
 	GEOMETRY();
 
-	GEOMETRY(GEOMETRY& geometry);
+	GEOMETRY(vector<GEOMETRY>& geos);
 
-	GEOMETRY(vector<POINT3>& points);
-	GEOMETRY(vector<LINE3>& lines);
-	GEOMETRY(vector<POLY3>& polys);
-
-	GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines);
-	GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines, vector<POLY3>& polys);
+	GEOMETRY(vector<SPHERE>& spheres, vector<SEGMENT>& segments, vector<TRIANGLE>& triangles);
+	GEOMETRY(vector<SPHERE> spheres, vector<SEGMENT> segments, vector<TRIANGLE> triangles);
 
 	void add_axis();
+
+	inline void add_segment(SEGMENT& seg);
+	inline void add_sphere(SPHERE& sph);
+	inline void add_triangle(TRIANGLE& tri);
 };
 
 class PRECOMPUTE_GEOMETRY {
 public:
-	vector<LINE3> lines; // transformed lines + polygon lines
-	vector<POINT3> points; // transformed points
+	int num_segments = 0;
+	int num_spheres = 0;
+	SEGMENT segments[400]; // transformed segs + triangle segs
+	SPHERE spheres[100]; // transformed spheres
 
 	PRECOMPUTE_GEOMETRY();
 
+	void recompute_geometry();
+
+	// rotate and translate point based on perspective and origin.
 	inline V3& transform(V3& v3);
+
+	inline void add_segment(SEGMENT& seg);
+	inline void add_sphere(SPHERE& sph);
+
 };

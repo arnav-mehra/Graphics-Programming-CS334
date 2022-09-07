@@ -8,41 +8,31 @@
 #include "framebuffer.h"
 #include "_Geometry.hpp"
 
-#define COLOR(r,g,b) ((b << 16) | (g << 8) | r)
-
-#define DOT_SIZE 8
-#define STROKE_WIDTH 4
-const int HALF_DOT = DOT_SIZE >> 1;
-const int HALF_DOT_SQUARE = HALF_DOT * HALF_DOT;
-const int HALF_STROKE = STROKE_WIDTH >> 1;
-const float HALF_STROKE_SQUARE = HALF_STROKE * HALF_STROKE;
-
 using namespace std;
 
 FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
 	w = _w;
 	h = _h;
 	pix = new unsigned int[w * h];
-	precompute = PRECOMPUTE_GEOMETRY();
 }
 
-void FrameBuffer::draw() {
-	// auto time_start = std::chrono::system_clock::now();
-
+void FrameBuffer::apply_geometry() {
+	precompute = PRECOMPUTE_GEOMETRY();
 	vector<float> z_index(w * h, FLT_MAX);
 
-	for (LINE3& line : precompute.lines) {
-		V3& start = line.start;
-		V3& end = line.end;
+	for (int i = 0; i < precompute.num_segments; i++) {
+		SEGMENT& segment = precompute.segments[i];
+		V3& start = segment.start;
+		V3& end = segment.end;
 
 		// determine box
-		int min_x = (int) min(start[Dim::X], end[Dim::X]) - HALF_STROKE;
+		int min_x = (int)(min(start[Dim::X], end[Dim::X]) + 0.5f) - HALF_STROKE;
 		if (min_x < 0) min_x = 0;
-		int min_y = (int) min(start[Dim::Y], end[Dim::Y]) - HALF_STROKE;
+		int min_y = (int)(min(start[Dim::Y], end[Dim::Y]) + 0.5f) - HALF_STROKE;
 		if (min_y < 0) min_y = 0;
-		int max_x = (int) max(start[Dim::X], end[Dim::X]) + HALF_STROKE;
+		int max_x = (int)(max(start[Dim::X], end[Dim::X]) - 0.5f) + HALF_STROKE;
 		if (max_x >= w) max_x = w - 1;
-		int max_y = (int) max(start[Dim::Y], end[Dim::Y]) + HALF_STROKE;
+		int max_y = (int)(max(start[Dim::Y], end[Dim::Y]) - 0.5f) + HALF_STROKE;
 		if (max_y >= h) max_y = h - 1;
 
 		// precompute line_vec unit vector as if z = 0
@@ -53,7 +43,7 @@ void FrameBuffer::draw() {
 		// iterate over box pixels
 		for (int y = min_y; y <= max_y; y++) {
 			for (int x = min_x; x <= max_x; x++) {
-				// project delta onto line as if z = 0
+				// project delta onto segment as if z = 0
 				float dx = x - start[Dim::X];
 				float dy = y - start[Dim::Y];
 				const float proj_num = dx * line_vec[Dim::X] + dy * line_vec[Dim::Y];
@@ -64,7 +54,7 @@ void FrameBuffer::draw() {
 				dy -= proj[Dim::Y];
 				const float dist_sq = dx * dx + dy * dy;
 
-				// determine squared distance from line
+				// determine squared distance from segment
 				if (HALF_STROKE_SQUARE < dist_sq) continue;
 
 				// check if z if high enough to render over another item.
@@ -75,26 +65,27 @@ void FrameBuffer::draw() {
 
 				// overwrite pixel color
 				const float d = min(HALF_STROKE_SQUARE - dist_sq, 5.0f);
-				pix[p] = line.getColor(0.2f * d);
+				pix[p] = segment.scaleColor(0.2f * d);
 			}
 		}
 	}
 
-	for (POINT3& point3 : precompute.points) {
-		V3& point = point3.point;
+	for (int i = 0; i < precompute.num_spheres; i++) {
+		SPHERE& sphere = precompute.spheres[i];
+		V3& point = sphere.point;
 
-		int min_x = (int) point[Dim::X] - HALF_DOT;
+		int min_x = (int)(point[Dim::X] + 0.5f) - HALF_DOT;
 		if (min_x < 0) min_x = 0;
-		int min_y = (int) point[Dim::Y] - HALF_DOT;
+		int min_y = (int)(point[Dim::Y] + 0.5f) - HALF_DOT;
 		if (min_y < 0) min_y = 0;
-		int max_x = (int) point[Dim::X] + HALF_DOT;
+		int max_x = (int)(point[Dim::X] - 0.5f) + HALF_DOT;
 		if (max_x >= w) max_x = w - 1;
-		int max_y = (int) point[Dim::Y] + HALF_DOT;
+		int max_y = (int)(point[Dim::Y] - 0.5f) + HALF_DOT;
 		if (max_y >= h) max_y = h - 1;
 
 		for (int y = min_y; y <= max_y; y++) {
 			for (int x = min_x; x <= max_x; x++) {
-				// project delta onto line as if z = 0
+				// project delta onto segment as if z = 0
 				float dx = x - point[Dim::X];
 				float dy = y - point[Dim::Y];
 				const float dist_sq = dx * dx + dy * dy;
@@ -109,13 +100,19 @@ void FrameBuffer::draw() {
 
 				// overwrite pixel color
 				const float d = min(HALF_DOT_SQUARE - dist_sq, 5.0f);
-				pix[p] = point3.getColor(0.2f * d);
+				pix[p] = sphere.scaleColor(0.2f * d);
 			}
 		}
 	}
+}
 
-	// auto time_end = std::chrono::system_clock::now();
-	// cout << "RENDERED IN: " << (time_end - time_start).count() * 1e-6 << "\n";
+void FrameBuffer::draw() {
+	auto time_start = std::chrono::system_clock::now();
+
+	
+
+	auto time_end = std::chrono::system_clock::now();
+	cout << "RENDERED IN: " << (time_end - time_start).count() * 1e-6 << "\n";
 	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 }
 
@@ -152,4 +149,59 @@ void FrameBuffer::KeyboardHandle() {
 void FrameBuffer::SetBGR(unsigned int bgr) {
 	for (int uv = 0; uv < w*h; uv++)
 		pix[uv] = bgr;
+}
+
+// load a tiff image to pixel buffer
+void FrameBuffer::LoadTiff(char* fname) {
+	TIFF* in = TIFFOpen(fname, "r");
+
+	if (in == NULL) {
+		cout << fname << " could not be opened" << endl;
+		return;
+	}
+
+	int width, height;
+	TIFFGetField(in, TIFFTAG_IMAGEWIDTH, &width);
+	TIFFGetField(in, TIFFTAG_IMAGELENGTH, &height);
+	if (w != width || h != height) {
+		w = width;
+		h = height;
+		delete[] pix;
+		pix = new unsigned int[w * h];
+		size(w, h);
+		glFlush();
+		glFlush();
+	}
+
+	if (TIFFReadRGBAImage(in, w, h, pix, 0) == 0) {
+		cout << "failed to load " << fname << endl;
+	}
+	cout << "image read in\n";
+
+	TIFFClose(in);
+}
+
+// save as tiff image
+void FrameBuffer::SaveAsTiff(char* fname) {
+
+	TIFF* out = TIFFOpen(fname, "w");
+
+	if (out == NULL) {
+		cout << fname << " could not be opened" << endl;
+		return;
+	}
+
+	TIFFSetField(out, TIFFTAG_IMAGEWIDTH, w);
+	TIFFSetField(out, TIFFTAG_IMAGELENGTH, h);
+	TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, 4);
+	TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8);
+	TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+	TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+	TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+
+	for (uint32 row = 0; row < (unsigned int)h; row++) {
+		TIFFWriteScanline(out, &pix[(h - row - 1) * w], row);
+	}
+
+	TIFFClose(out);
 }

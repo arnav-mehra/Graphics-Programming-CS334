@@ -3,12 +3,12 @@ POINT ROTATION TESTING:
 VARIABLES (already set in code): 
 
 	Rotating Point:
-		POINT3(
+		POINT(
 			V3(20.0f, 50.0f, 50.0f), // point
 			V3(255, 0, 0) // color
 		)
 	Axis:
-		LINE3(
+		SEGMENT(
 			V3(-100.0f, 0.0f, 200.0f), // starting/origin point
 			V3(100.0f, 100.0f, -100.0f), // end point, makes the direction: <200, 100, -300>
 			V3(0, 0, 255) // color

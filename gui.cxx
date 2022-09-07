@@ -2,12 +2,20 @@
 #include "gui.h"
 #include "scene.h"
 
-void GUI::cb_RotatePerspective_i(Fl_Button*, void*) {
-    RotatePerspective_cb();
+void GUI::cb_LoadTiffButton_i(Fl_Button*, void*) {
+    LoadTiffButton_cb();
 }
 
-void GUI::cb_RotatePerspective(Fl_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_RotatePerspective_i(o,v);
+void GUI::cb_LoadTiffButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LoadTiffButton_i(o,v);
+}
+
+void GUI::cb_SaveTiffButton_i(Fl_Button*, void*) {
+    SaveTiffButton_cb();
+}
+
+void GUI::cb_SaveTiffButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_SaveTiffButton_i(o, v);
 }
 
 void GUI::cb_RotatePoint_i(Fl_Return_Button*, void*) {
@@ -23,12 +31,17 @@ GUI::GUI() {
         uiw = new Fl_Double_Window(199, 197, "GUI");
         uiw->user_data((void*)(this));
         {
-            Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Rotate Perspective");
+            Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Load Tiff");
             o->selection_color(FL_DARK_RED);
-            o->callback((Fl_Callback*)cb_RotatePerspective);
+            o->callback((Fl_Callback*)cb_LoadTiffButton);
         } // Fl_Button* o
         {
-            Fl_Button* o = new Fl_Button(15, 80, 150, 50, "Rotate Point (2 deg)");
+            Fl_Button* o = new Fl_Button(15, 80, 150, 50, "Save Tiff");
+            o->selection_color(FL_DARK_RED);
+            o->callback((Fl_Callback*)cb_SaveTiffButton);
+        } // Fl_Button* o
+        {
+            Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Rotate Point (2 deg)");
             o->callback((Fl_Callback*)cb_RotatePoint);
         } // Fl_Return_Button* o
         uiw->end();
@@ -44,10 +57,14 @@ void GUI::show() {
     uiw->show();
 }
 
-void GUI::RotatePerspective_cb() {
-    scene->RotatePerspective();
+void GUI::LoadTiffButton_cb() {
+    scene->LoadTiffButton();
+}
+
+void GUI::SaveTiffButton_cb() {
+    scene->SaveTiffButton();
 }
 
 void GUI::RotatePoint_cb() {
-    scene->RotatePoint();
+    scene->TranslateImage();
 }

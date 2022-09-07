@@ -9,183 +9,193 @@
 #include "M33.hpp"
 #include "scene.h"
 
-#define STROKE_WIDTH 4
-
-inline unsigned int COLOR::getColor() {
-	unsigned int r = (unsigned int) color[0];
-	unsigned int g = (unsigned int) color[1];
-	unsigned int b = (unsigned int) color[2];
-	return (b << 16) | (g << 8) | r;
+inline U32 GEO_META::scaleColor(float scalar) {
+	U32 r = (color & 255) * scalar;
+	U32 g = ((color >> 8) & 255) * scalar;
+	U32 b = ((color >> 16) & 255) * scalar;
+	return COLOR(r, g, b);
 }
 
-inline unsigned int COLOR::getColor(float c) {
-	unsigned int r = (unsigned int) (color[0] * c);
-	unsigned int g = (unsigned int) (color[1] * c);
-	unsigned int b = (unsigned int) (color[2] * c);
-	return (b << 16) | (g << 8) | r;
-}
+SPHERE::SPHERE() {}
 
-inline void COLOR::setColor(V3& c) {
-	color = c;
-}
-
-inline void COLOR::setColor(float r, float g, float b) {
-	color = V3(r, g, b);
-}
-
-LINE3::LINE3() {}
-
-LINE3::LINE3(V3& start, V3& end) {
-	this->start = start;
-	this->end = end;
-}
-
-LINE3::LINE3(V3& start, V3& end, V3& color) {
-	this->start = start;
-	this->end = end;
-	this->color = color;
-}
-
-POINT3::POINT3() {}
-
-POINT3::POINT3(V3& point) {
+SPHERE::SPHERE(V3& point) {
 	this->point = point;
+	this->width = 4;
+	this->color = COLOR(255, 0, 0);
 }
 
-POINT3::POINT3(V3& point, V3& color) {
+SPHERE::SPHERE(V3& point, U32 color) {
 	this->point = point;
 	this->color = color;
+	this->width = 4;
 }
 
-POLY3::POLY3() {}
-
-POLY3::POLY3(vector<V3>& points) {
-	this->points = points;
-}
-
-POLY3::POLY3(vector<V3>& points, V3& color) {
-	this->points = points;
+SPHERE::SPHERE(V3& point, U32 color, U32 width) {
+	this->point = point;
 	this->color = color;
+	this->width = width;
+}
+
+SEGMENT::SEGMENT() {}
+
+SEGMENT::SEGMENT(V3& start, V3& end) {
+	this->start = start;
+	this->end = end;
+	this->width = 4;
+	this->color = COLOR(255, 0, 0);
+}
+
+SEGMENT::SEGMENT(V3& start, V3& end, U32 color) {
+	this->start = start;
+	this->end = end;
+	this->width = 4;
+	this->color = color;
+}
+
+SEGMENT::SEGMENT(V3& start, V3& end, U32 color, U32 width) {
+	this->start = start;
+	this->end = end;
+	this->width = width;
+	this->color = color;
+}
+
+TRIANGLE::TRIANGLE() {}
+
+TRIANGLE::TRIANGLE(V3(&spheres)[3]) {
+	this->spheres[0] = spheres[0];
+	this->spheres[1] = spheres[1];
+	this->spheres[2] = spheres[2];
+	this->color = COLOR(255, 0, 0);
+	this->width = 4;
+}
+
+TRIANGLE::TRIANGLE(V3(&spheres)[3], U32 color) {
+	this->spheres[0] = spheres[0];
+	this->spheres[1] = spheres[1];
+	this->spheres[2] = spheres[2];
+	this->color = color;
+	this->width = 4;
+}
+
+TRIANGLE::TRIANGLE(V3(&spheres)[3], U32 color, U32 width) {
+	this->spheres[0] = spheres[0];
+	this->spheres[1] = spheres[1];
+	this->spheres[2] = spheres[2];
+	this->color = color;
+	this->width = width;
 }
 
 GEOMETRY::GEOMETRY() {
-	points = {
-		POINT3(V3(50, 50, 50), V3(0, 255, 0)),
-		POINT3(V3(50, -50, 50), V3(0, 255, 0)),
-		POINT3(V3(-50, 50, 50), V3(0, 255, 0)),
-		POINT3(V3(-50, -50, 50), V3(0, 255, 0)),
-		POINT3(V3(50, 50, -50), V3(0, 255, 0)),
-		POINT3(V3(50, -50, -50), V3(0, 255, 0)),
-		POINT3(V3(-50, 50, -50), V3(0, 255, 0)),
-		POINT3(V3(-50, -50, -50), V3(0, 255, 0)),
+	V3 v[] = {
+		V3(50, 50, 50),
+		V3(50, -50, 50),
+		V3(-50, 50, 50),
+		V3(-50, -50, 50),
+		V3(50, 50, -50),
+		V3(50, -50, -50),
+		V3(-50, 50, -50),
+		V3(-50, -50, -50)
 	};
-	lines = {
-		LINE3(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)),
-		LINE3(V3(0, -200, 0), V3(0, 200, 0), V3(255, 0, 0)),
-		LINE3(V3(0, 0, -200), V3(0, 0, 200), V3(255, 0, 0))
+	for (int i = 0; i < 8; i++) {
+		add_sphere(SPHERE(v[i], COLOR(0, 255, 0)));
+	}
+	SEGMENT segs[] = {
+		SEGMENT(v[0], v[1]),
+		SEGMENT(v[1], v[2]),
+		SEGMENT(v[2], v[3]),
+		SEGMENT(v[3], v[0]),
+		SEGMENT(v[4], v[5]),
+		SEGMENT(v[5], v[6]),
+		SEGMENT(v[6], v[7]),
+		SEGMENT(v[7], v[4]),
+		SEGMENT(v[0], v[4]),
+		SEGMENT(v[1], v[5]),
+		SEGMENT(v[2], v[6]),
+		SEGMENT(v[3], v[7]),
 	};
-	vector<V3> pv = {
-		V3(0, 0, 0),
-		V3(100, 0, 0),
-		V3(100, 0, 100),
-		V3(100, 0, 0),
-
-		V3(100, 100, 0),
-		V3(100, 100, 100),
-		V3(100, 100, 0),
-
-		V3(0, 100, 0),
-		V3(0, 100, 100),
-		V3(0, 100, 0),
-
-		V3(0, 0, 0),
-		V3(0, 0, 100),
-		V3(100, 0, 100),
-		V3(100, 100, 100),
-		V3(0, 100, 100),
-		V3(0, 0, 100),
-	};
-	for (V3& v : pv) v -= V3(50, 50, 50);
-	polys = {
-		POLY3(pv, V3(0, 255, 0))
-	};
+	for (SEGMENT& seg : segs) {
+		add_segment(seg);
+	}
 }
 
-GEOMETRY::GEOMETRY(vector<POINT3>& points) {
-	this->points = points;
+GEOMETRY::GEOMETRY(vector<GEOMETRY>& geos) {
+	for (GEOMETRY& geo : geos) {
+		for (int i = 0; i < geo.num_spheres; i++) {
+			add_sphere(geo.spheres[i]);
+		}
+		for (int i = 0; i < geo.num_segments; i++) {
+			add_segment(geo.segments[i]);
+		}
+		for (int i = 0; i < geo.num_triangles; i++) {
+			add_triangle(geo.triangles[i]);
+		}
+	}
 }
 
-GEOMETRY::GEOMETRY(vector<LINE3>& lines) {
-	this->lines = lines;
+GEOMETRY::GEOMETRY(vector<SPHERE>& spheres, vector<SEGMENT>& segments, vector<TRIANGLE>& triangles) {
+	for (SPHERE& p : spheres) add_sphere(p);
+	for (SEGMENT& s : segments) add_segment(s);
+	for (TRIANGLE& t : triangles) add_triangle(t);
 }
 
-GEOMETRY::GEOMETRY(vector<POLY3>& polys) {
-	this->polys = polys;
-}
-
-GEOMETRY::GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines) {
-	this->points = points;
-	this->lines = lines;
-}
-
-GEOMETRY::GEOMETRY(GEOMETRY& geometry) {
-	lines = geometry.lines;
-	points = geometry.points;
-	polys = geometry.polys;
-}
-
-GEOMETRY::GEOMETRY(vector<POINT3>& points, vector<LINE3>& lines, vector<POLY3>& polys) {
-	this->lines = lines;
-	this->points = points;
-	this->polys = polys;
+GEOMETRY::GEOMETRY(vector<SPHERE> spheres, vector<SEGMENT> segments, vector<TRIANGLE> triangles) {
+	for (SPHERE& p : spheres) add_sphere(p);
+	for (SEGMENT& s : segments) add_segment(s);
+	for (TRIANGLE& t : triangles) add_triangle(t);
 }
 
 void GEOMETRY::add_axis() {
-	lines.push_back(LINE3(V3(-200, 0, 0), V3(200, 0, 0), V3(255, 0, 0)));
-	lines.push_back(LINE3(V3(0, -200, 0), V3(0, 200, 0), V3(255, 0, 0)));
-	lines.push_back(LINE3(V3(0, 0, -200), V3(0, 0, 200), V3(255, 0, 0)));
+	add_segment(SEGMENT(V3(-200, 0, 0), V3(200, 0, 0)));
+	add_segment(SEGMENT(V3(0, -200, 0), V3(0, 200, 0)));
+	add_segment(SEGMENT(V3(0, 0, -200), V3(0, 0, 200)));
+}
+
+inline void GEOMETRY::add_segment(SEGMENT& seg) {
+	segments[num_segments++] = seg;
+}
+
+inline void GEOMETRY::add_sphere(SPHERE& sph) {
+	spheres[num_spheres++] = sph;
+}
+
+inline void GEOMETRY::add_triangle(TRIANGLE& tri) {
+	triangles[num_triangles++] = tri;
+}
+
+PRECOMPUTE_GEOMETRY::PRECOMPUTE_GEOMETRY() {
+	recompute_geometry();
 }
 
 // rotate + copy geometry
-PRECOMPUTE_GEOMETRY::PRECOMPUTE_GEOMETRY() {
+void PRECOMPUTE_GEOMETRY::recompute_geometry() {
+	num_segments = 0;
+	num_spheres = 0;
 	GEOMETRY& geometry = scene->geometry;
 
-	// resize vectors
-	int num_lines = (int) geometry.lines.size();
-	for (POLY3& poly : geometry.polys) {
-		int lines = (int) poly.points.size() - 1;
-		num_lines += lines > 0 ? lines : 0;
-	}
-	lines.resize(num_lines);
-	points.resize(geometry.points.size());
-
-	// rotate lines to showcase 3D.
-	int line_i = 0;
-	for (LINE3& old_line : geometry.lines) {
-		LINE3& new_line = lines[line_i++];
-		new_line.color = old_line.color;
-		new_line.start = transform(old_line.start);
-		new_line.end = transform(old_line.end);
+	// rotate segments to showcase 3D.
+	for (int i = 0; i < geometry.num_segments; i++) {
+		SEGMENT& old_line = geometry.segments[i];
+		V3 new_start = transform(old_line.start);
+		V3 new_end = transform(old_line.end);
+		SEGMENT new_line = SEGMENT(new_start, new_end, old_line.color, old_line.width);
+		add_segment(new_line);
 	}
 
-	// rotate polys. rotate each point, then pair points into lines
-	for (POLY3& poly : geometry.polys) {
-		vector<V3> points(poly.points.size());
-		for (int i = 0; i < points.size(); i++) {
-			V3 temp = transform(poly.points[i]);
-			points[i] = temp;
-		}
-		for (int i = 0; i < points.size() - 1; i++) {
-			LINE3& new_line = lines[line_i++];
-			new_line = LINE3(points[i], points[i + 1], poly.color);
-		}
+	// rotate triangles. rotate each point, then pair spheres into segments
+	for (int i = 0; i < geometry.num_triangles; i++) {
+		TRIANGLE& triangle = geometry.triangles[i];
+		V3 p1 = transform(triangle.spheres[0]);
+		V3 p2 = transform(triangle.spheres[1]);
+		V3 p3 = transform(triangle.spheres[2]);
+		add_segment(SEGMENT(p1, p2, triangle.color, triangle.width));
+		add_segment(SEGMENT(p2, p3, triangle.color, triangle.width));
+		add_segment(SEGMENT(p3, p1, triangle.color, triangle.width));
 	}
 
-	// rotate points.
-	for (int i = 0; i < geometry.points.size(); i++) {
-		POINT3& p3 = geometry.points[i];
-		V3 new_point = transform(p3.point);
-		points[i] = POINT3(new_point, p3.color);
+	// rotate spheres.
+	for (int i = 0; i < geometry.num_spheres; i++) {
+		SPHERE& p3 = geometry.spheres[i];
+		add_sphere(SPHERE(transform(p3.point), p3.color, p3.width));
 	}
 }
 
@@ -194,4 +204,12 @@ inline V3& PRECOMPUTE_GEOMETRY::transform(V3& v3) {
 	V3 new_v3 = scene->perspective * v3;
 	new_v3 += scene->origin;
 	return new_v3;
+}
+
+inline void PRECOMPUTE_GEOMETRY::add_segment(SEGMENT& seg) {
+	segments[num_segments++] = seg;
+}
+
+inline void PRECOMPUTE_GEOMETRY::add_sphere(SPHERE& sph) {
+	spheres[num_spheres++] = sph;
 }

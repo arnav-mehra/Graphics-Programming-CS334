@@ -19,8 +19,9 @@ public:
 	GEOMETRY geometry;
 
 	Scene();
-	void RotatePerspective();
-	void RotatePoint();
+	void LoadTiffButton();
+	void SaveTiffButton();
+	void TranslateImage();
 };
 
 extern Scene *scene;
