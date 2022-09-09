@@ -1,28 +1,32 @@
-POINT ROTATION TESTING:
+INSTRUCTIONS:
+	
+	SEGMENT/CIRCLE/TRIANGLE, GEOMETRY SHOWCASE:
+		1. Set PLAY_PONG and PLAY_NAME_SCROLL in scene.h to false.
+		2. Set SHOW_GEOMETRY in scene.h to true.
+		3. Start application. 
 
-VARIABLES (already set in code): 
+	SCROLLING NAME:
+		1. Set PLAY_PONG and SHOW_GEOMETRY in scene.h to false.
+		2. Set PLAY_NAME_SCROLL in scene.h to true.
+		3. Start application.
+		3. Click "Play" button.
 
-	Rotating Point:
-		POINT(
-			V3(20.0f, 50.0f, 50.0f), // point
-			V3(255, 0, 0) // color
-		)
-	Axis:
-		SEGMENT(
-			V3(-100.0f, 0.0f, 200.0f), // starting/origin point
-			V3(100.0f, 100.0f, -100.0f), // end point, makes the direction: <200, 100, -300>
-			V3(0, 0, 255) // color
-		)
+	TIFF FILES:
+		1. Set TIFF_FILE_IN and TIFF_FILE_OUT in scene.h.
+		2. Start application.
+		3. Click buttons as needed (refer to BUTTONS section)
+
+	EXTRA CREDIT - PONG:
+		1. Set PLAY_NAME_SCROLL and SHOW_GEOMETRY in scene.h to false.
+		1. Set PLAY_PONG in scene.h to true.
+		2. Start application. 
+		3. Click "Play" button.
+		4. Press left/right keys to control bottom player.
+		5. Press top/bottom keys to control top player.
+		6. Check the terminal for the current score.
 
 BUTTONS:
 
-	Click "Rotate Point" to see point rotate by 2 degrees about axis.
-	Click "Rotate Perspective" to rotate 3D coords (you can also adjust the starting perspective in ).
-
-INSTRUCTIONS:
-	
-	1. Run. Point and axis should appear.
-	2. Click "Rotate Point" until 360 degrees are completed.
-	   X (red), Y (green), and Z (blue) graphs are automatically graphed.
-	   The graph ("GRAPH.png") should match that provided by Google Spreadsheets ("GRAPH_SPREADSHEETS.png").
-	3. Have fun! Play around with the perspective, add polygons, try breaking it, etc.
+	Click "Load Tiff" to load the tiff file specified by TIFF_FILE_IN in scene.h
+	Click "Save Tiff" to save the framebuffer to the file specified by TIFF_FILE_OUT in scene.h
+	Click "Play" to start animations for Pong + Name.

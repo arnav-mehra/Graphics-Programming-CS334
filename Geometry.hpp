@@ -6,13 +6,6 @@
 
 #define COLOR(r,g,b) (((b) << 16) | ((g) << 8) | (r))
 
-#define DOT_SIZE 50
-#define STROKE_WIDTH 4
-const int HALF_DOT = DOT_SIZE >> 1;
-const int HALF_DOT_SQUARE = HALF_DOT * HALF_DOT;
-const int HALF_STROKE = STROKE_WIDTH >> 1;
-const float HALF_STROKE_SQUARE = HALF_STROKE * HALF_STROKE;
-
 typedef unsigned int U32;
 
 class GEO_META {
@@ -45,12 +38,12 @@ public:
 
 class TRIANGLE : public GEO_META {
 public:
-	V3 spheres[3];
+	V3 points[3];
 
 	TRIANGLE();
-	TRIANGLE(V3 (&spheres)[3]);
-	TRIANGLE(V3 (&spheres)[3], U32 color);
-	TRIANGLE(V3(&spheres)[3], U32 color, U32 width);
+	TRIANGLE(V3 (&points)[3]);
+	TRIANGLE(V3 (&points)[3], U32 color);
+	TRIANGLE(V3 (&points)[3], U32 color, U32 width);
 };
 
 class GEOMETRY {
@@ -64,27 +57,29 @@ public:
 
 	// preloaded geometry (check function for details)
 	GEOMETRY();
-
+	
 	GEOMETRY(vector<GEOMETRY>& geos);
 
-	GEOMETRY(vector<SPHERE>& spheres, vector<SEGMENT>& segments, vector<TRIANGLE>& triangles);
 	GEOMETRY(vector<SPHERE> spheres, vector<SEGMENT> segments, vector<TRIANGLE> triangles);
 
+	void setup_pong();
 	void add_axis();
 
-	inline void add_segment(SEGMENT& seg);
-	inline void add_sphere(SPHERE& sph);
-	inline void add_triangle(TRIANGLE& tri);
+	inline void add_segment(SEGMENT seg);
+	inline void add_sphere(SPHERE sph);
+	inline void add_triangle(TRIANGLE tri);
 };
 
-class PRECOMPUTE_GEOMETRY {
+class COMPUTED_GEOMETRY {
 public:
 	int num_segments = 0;
 	int num_spheres = 0;
+	int num_triangles = 0;
 	SEGMENT segments[400]; // transformed segs + triangle segs
 	SPHERE spheres[100]; // transformed spheres
+	TRIANGLE triangles[100];
 
-	PRECOMPUTE_GEOMETRY();
+	COMPUTED_GEOMETRY();
 
 	void recompute_geometry();
 
@@ -93,5 +88,5 @@ public:
 
 	inline void add_segment(SEGMENT& seg);
 	inline void add_sphere(SPHERE& sph);
-
+	inline void add_triangle(TRIANGLE& tri);
 };

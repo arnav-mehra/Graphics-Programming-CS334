@@ -15,11 +15,11 @@ private:
 	static void cb_LoadTiffButton(Fl_Button*, void*);
 	inline void cb_SaveTiffButton_i(Fl_Button*, void*);
 	static void cb_SaveTiffButton(Fl_Button*, void*);
-	inline void cb_RotatePoint_i(Fl_Return_Button*, void*);
-	static void cb_RotatePoint(Fl_Return_Button*, void*);
+	inline void cb_Play_i(Fl_Return_Button*, void*);
+	static void cb_Play(Fl_Return_Button*, void*);
 public:
 	void show();
 	void LoadTiffButton_cb();
 	void SaveTiffButton_cb();
-	void RotatePoint_cb();
+	void Play_cb();
 };

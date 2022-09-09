@@ -111,7 +111,7 @@ inline float V3::operator*(V3& vector) {
 }
 
 V3& V3::operator^(V3& vector) {
-    V3 result  = V3();
+    V3 result = V3();
     result[Dim::X] =
         (*this)[Dim::Y] * vector[Dim::Z]
         - (*this)[Dim::Z] * vector[Dim::Y];

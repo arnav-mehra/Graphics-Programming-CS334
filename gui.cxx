@@ -18,12 +18,12 @@ void GUI::cb_SaveTiffButton(Fl_Button* o, void* v) {
     ((GUI*)(o->parent()->user_data()))->cb_SaveTiffButton_i(o, v);
 }
 
-void GUI::cb_RotatePoint_i(Fl_Return_Button*, void*) {
-    RotatePoint_cb();
+void GUI::cb_Play_i(Fl_Return_Button*, void*) {
+    Play_cb();
 }
 
-void GUI::cb_RotatePoint(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_RotatePoint_i(o,v);
+void GUI::cb_Play(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_Play_i(o,v);
 }
 
 GUI::GUI() {
@@ -41,8 +41,8 @@ GUI::GUI() {
             o->callback((Fl_Callback*)cb_SaveTiffButton);
         } // Fl_Button* o
         {
-            Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Rotate Point (2 deg)");
-            o->callback((Fl_Callback*)cb_RotatePoint);
+            Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Play");
+            o->callback((Fl_Callback*)cb_Play);
         } // Fl_Return_Button* o
         uiw->end();
     } // Fl_Double_Window* uiw
@@ -65,6 +65,6 @@ void GUI::SaveTiffButton_cb() {
     scene->SaveTiffButton();
 }
 
-void GUI::RotatePoint_cb() {
+void GUI::Play_cb() {
     scene->TranslateImage();
 }
