@@ -58,11 +58,22 @@ void nextFrame(void* window) {
 		p += v;
 		scene->geometry.setup_pong();
 	}
+	
 	if (PLAY_NAME_SCROLL) {
 		scene->origin += V3(3.2, 0, 0);
 		if (scene->origin[Dim::X] > scene->w) {
 			scene->origin = V3(0, (float)scene->h * 0.5f, 0.0f);
 		}
+	}
+
+	if (PLAY_TETRIS) {
+		if (scene->curr_shape == -1) {
+			scene->add_shape();
+		}
+		else {
+			scene->drop_shape();
+		}
+		scene->geometry.setup_tetris();
 	}
 
 	FrameBuffer* fb = (FrameBuffer*) window;
@@ -71,7 +82,7 @@ void nextFrame(void* window) {
 	fb->redraw();
 
 	auto time_end = std::chrono::system_clock::now();
-	float adjustment = 0.033 - (time_end - time_start).count() * 1e-6;
+	float adjustment = 1 - (time_end - time_start).count() * 1e-6;
 	if (adjustment < 0) adjustment = 0;
 	// cout << "ADJUSTMENT: " << adjustment << "\n";
 
@@ -248,16 +259,17 @@ void FrameBuffer::KeyboardHandle() {
 	int key = Fl::event_key();
 	V3& p1 = scene->player1;
 	V3& p2 = scene->player2;
-
 	switch (key) {
 		case FL_Left: {
 			V3 new_p1 = p1 - V3(10, 0, 0);
 			if (-200 <= new_p1[Dim::X]) p1 = new_p1;
+			scene->move_left();
 			break;
 		}
 		case FL_Right: {
 			V3 new_p1 = p1 + V3(10, 0, 0);
 			if (new_p1[Dim::X] <= 150) p1 = new_p1;
+			scene->move_right();
 			break;
 		}
 		case FL_Up: {
@@ -269,6 +281,9 @@ void FrameBuffer::KeyboardHandle() {
 			V3 new_p2 = p2 + V3(10, 0, 0);
 			if (new_p2[Dim::X] <= 150) p2 = new_p2;
 			break;
+		}
+		case 'r': {
+			scene->rotate();
 		}
 	}
 }

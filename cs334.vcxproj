@@ -97,10 +97,6 @@
   <ItemGroup>
     <Text Include="README.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="GRAPH.PNG" />
-    <Image Include="GRAPH_SPREADSHEETS.png" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

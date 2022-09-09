@@ -118,6 +118,11 @@ Scene::Scene() {
 		geometry.setup_pong();
 	}
 
+	if (PLAY_TETRIS) {
+		origin = V3(120.0f, 50, 0.0f);
+		geometry.setup_tetris();
+	}
+
 	int u0 = 16, v0 = 40;
 	fb = new FrameBuffer(u0, v0, w, h);
 	fb->position(u0, v0);

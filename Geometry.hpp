@@ -51,9 +51,9 @@ public:
 	int num_spheres = 0;
 	int num_segments = 0;
 	int num_triangles = 0;
-	SPHERE spheres[100];
-	SEGMENT segments[100];
-	TRIANGLE triangles[100];
+	SPHERE spheres[1000];
+	SEGMENT segments[1000];
+	TRIANGLE triangles[1000];
 
 	// preloaded geometry (check function for details)
 	GEOMETRY();
@@ -63,6 +63,7 @@ public:
 	GEOMETRY(vector<SPHERE> spheres, vector<SEGMENT> segments, vector<TRIANGLE> triangles);
 
 	void setup_pong();
+	void setup_tetris();
 	void add_axis();
 
 	inline void add_segment(SEGMENT seg);
@@ -75,9 +76,9 @@ public:
 	int num_segments = 0;
 	int num_spheres = 0;
 	int num_triangles = 0;
-	SEGMENT segments[400]; // transformed segs + triangle segs
-	SPHERE spheres[100]; // transformed spheres
-	TRIANGLE triangles[100];
+	SEGMENT segments[4000]; // transformed segs + triangle segs
+	SPHERE spheres[1000]; // transformed spheres
+	TRIANGLE triangles[1000];
 
 	COMPUTED_GEOMETRY();
 

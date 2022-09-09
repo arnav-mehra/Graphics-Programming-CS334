@@ -153,6 +153,53 @@ void GEOMETRY::setup_pong() {
 	}
 }
 
+void GEOMETRY::setup_tetris() {
+	num_spheres = 0;
+	num_segments = 0;
+	num_triangles = 0;
+
+	bool grid[20][10];
+	for (int r = 0; r < 20; r++) {
+		for (int c = 0; c < 10; c++) {
+			grid[r][c] = scene->grid[r][c];
+		}
+	}
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			int r = scene->pos.first + i;
+			int c = scene->pos.second + j;
+			if (r >= 0 && r < 20 && c >= 0 && c < 10)
+				grid[r][c] = scene->shapes[scene->curr_shape][i][j];
+		}
+	}
+
+	// border
+	V3 c1 = V3(0.0f, 0.0f, 0.0f);
+	V3 c2 = V3(0.0f, 400.0f, 0.0f);
+	V3 c3 = V3(200.0f, 400.0f, 0.0f);
+	V3 c4 = V3(200.0f, 0.0f, 0.0f);
+	add_segment(SEGMENT(c1, c2));
+	add_segment(SEGMENT(c2, c3));
+	add_segment(SEGMENT(c3, c4));
+	add_segment(SEGMENT(c4, c1));
+
+	// draw board
+	for (int r = 0; r < 20; r++) {
+		for (int c = 0; c < 10; c++) {
+			if (grid[r][c]) {
+				V3 p1 = V3(c * 20 + 2, r * 20 + 2, 0);
+				V3 p2 = V3(c * 20 + 2, r * 20 + 18, 0);
+				V3 p3 = V3(c * 20 + 18, r * 20 + 18, 0);
+				V3 p4 = V3(c * 20 + 18, r * 20 + 2, 0);
+				V3 t1[3] = { p1, p2, p3 };
+				V3 t2[3] = { p3, p4, p1 };
+				add_triangle(TRIANGLE(t1));
+				add_triangle(TRIANGLE(t2));
+			}
+		}
+	}
+}
+
 GEOMETRY::GEOMETRY(vector<GEOMETRY>& geos) {
 	for (GEOMETRY& geo : geos) {
 		for (int i = 0; i < geo.num_spheres; i++) {
@@ -221,12 +268,12 @@ void COMPUTED_GEOMETRY::recompute_geometry() {
 		};
 		TRIANGLE new_tri = TRIANGLE(p, triangle.color, triangle.width);
 		add_triangle(new_tri);
-		SEGMENT s1 = SEGMENT(p[0], p[1], triangle.color, triangle.width);
+		/*SEGMENT s1 = SEGMENT(p[0], p[1], triangle.color, triangle.width);
 		SEGMENT s2 = SEGMENT(p[1], p[2], triangle.color, triangle.width);
 		SEGMENT s3 = SEGMENT(p[2], p[0], triangle.color, triangle.width);
 		add_segment(s1);
 		add_segment(s2);
-		add_segment(s3);
+		add_segment(s3);*/
 	}
 
 	// rotate spheres.

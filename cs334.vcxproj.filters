@@ -64,12 +64,4 @@
       <Filter>Source Files</Filter>
     </Text>
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="GRAPH.PNG">
-      <Filter>Source Files</Filter>
-    </Image>
-    <Image Include="GRAPH_SPREADSHEETS.png">
-      <Filter>Source Files</Filter>
-    </Image>
-  </ItemGroup>
 </Project>
