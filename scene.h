@@ -82,7 +82,7 @@ public:
 	}
 
 	void add_shape() {
-		int shape_num = (curr_shape + 1) % 3;
+		int shape_num = (rand() ^ rand()) % 3;
 		for (int c = 0; c < 10; c++) {
 			bool fits = will_fit({ 0, c }, shape_num);
 			if (fits) {

@@ -278,6 +278,7 @@ void FrameBuffer::KeyboardHandle() {
 			break;
 		}
 		case FL_Down: {
+			scene->drop_shape();
 			V3 new_p2 = p2 + V3(10, 0, 0);
 			if (new_p2[Dim::X] <= 150) p2 = new_p2;
 			break;
