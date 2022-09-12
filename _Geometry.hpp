@@ -287,9 +287,8 @@ void COMPUTED_GEOMETRY::recompute_geometry() {
 
 // rotate + translate each V3 depending on perspective + origin. 
 inline V3& COMPUTED_GEOMETRY::transform(V3& v3) {
-	V3 new_v3 = scene->perspective * v3;
-	new_v3 += scene->origin;
-	return new_v3;
+	V3 res = scene->ppc->Project(v3);
+	return res;
 }
 
 inline void COMPUTED_GEOMETRY::add_segment(SEGMENT& seg) {

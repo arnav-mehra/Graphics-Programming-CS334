@@ -5,21 +5,24 @@
 #include "Geometry.hpp"
 #include "framebuffer.h"
 #include "gui.h"
+#include "ppc.h"
 
 #define PLAY_PONG false
 #define PLAY_NAME_SCROLL false
-#define SHOW_GEOMETRY false
-#define PLAY_TETRIS true
+#define SHOW_GEOMETRY true
+#define PLAY_TETRIS false
 #define TIFF_FILE_IN "name.tif" // what we read from
 #define TIFF_FILE_OUT "random.tif" // what we write to
 
 class Scene {
 public:
-	GUI *gui;
-	FrameBuffer *fb;
+	GUI* gui;
+	FrameBuffer* fb;
+	PPC* ppc;
 
 	int w, h;
 	int frame;
+	float hfov;
 
 	M33 perspective;
 	V3 origin;

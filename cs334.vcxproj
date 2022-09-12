@@ -80,10 +80,12 @@
     <ClInclude Include="Geometry.hpp" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="M33.hpp" />
+    <ClInclude Include="ppc.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="V3.hpp" />
     <ClInclude Include="_Geometry.hpp" />
     <ClInclude Include="_M33.hpp" />
+    <ClInclude Include="_ppc.h" />
     <ClInclude Include="_V3.hpp" />
   </ItemGroup>
   <ItemGroup>

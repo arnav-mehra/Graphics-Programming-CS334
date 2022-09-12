@@ -3,9 +3,7 @@
 
 #include "_V3.hpp"
 #include "_M33.hpp"
-
-#define PI 3.14159265358979323846
-#define DEG_TO_RAD(x) ((x) * (PI / 180.0f))
+#include "_ppc.h"
 
 using namespace std;
 
@@ -17,11 +15,14 @@ Scene::Scene() {
 	h = 480;
 	w = 640;
 	frame = 0;
+	hfov = 60.0f;
+
 	gui = new GUI();
 	gui->show();
 
 	origin = V3((float) w * 0.5f, (float) h * 0.5f, 0.0f);
 	perspective = M33(Dim::X, 0); // M33(Dim::X, -0.1f)* M33(Dim::Y, 0.1f);
+	ppc = new PPC(hfov, w, h);
 
 	player1 = V3(-200, 0, 0);
 	player2 = V3(-200, 0, 0);
@@ -31,22 +32,23 @@ Scene::Scene() {
 	// GEOMETRY SHOWCASE
 	if (SHOW_GEOMETRY) {
 		SPHERE circle = SPHERE(
-			V3(-100.0f, 60.0f, -100.0f),
+			V3(-100.0f, 10.0f, 10.0f),
 			COLOR(0, 255, 0),
 			60
 		);
-		SEGMENT line_seg = SEGMENT(
-			V3(-100.0f, 50.0f, 0.0f),
-			V3(100.0f, 100.0f, 0.0f),
-			COLOR(0, 0, 255)
-		);
-		V3 triangle_pts[] = {
-			V3(-100.0f, 0.0f, 100.0f),
-			V3(100.0f, 0.0f, 100.0f),
-			V3(0.0f, 100.0f, 100.0f)
-		};
-		TRIANGLE triangle = TRIANGLE(triangle_pts);
-		geometry = GEOMETRY({ circle }, { line_seg }, { triangle_pts });
+		geometry.add_sphere(circle);
+		//SEGMENT line_seg = SEGMENT(
+		//	V3(-100.0f, 50.0f, 0.0f),
+		//	V3(100.0f, 100.0f, 0.0f),
+		//	COLOR(0, 0, 255)
+		//);
+		//geometry.add_segment(line_seg);
+		//V3 triangle_pts[] = {
+		//	V3(-100.0f, 0.0f, 0.0f),
+		//	V3(100.0f, 0.0f, 0.0f),
+		//	V3(0.0f, 100.0f, 0.0f)
+		//};
+		//geometry.add_triangle(TRIANGLE(triangle_pts));
 	}
 
 	// NAME SCROLL

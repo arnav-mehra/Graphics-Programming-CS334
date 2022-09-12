@@ -82,7 +82,7 @@ void nextFrame(void* window) {
 	fb->redraw();
 
 	auto time_end = std::chrono::system_clock::now();
-	float adjustment = 1 - (time_end - time_start).count() * 1e-6;
+	float adjustment = 0.033 - (time_end - time_start).count() * 1e-6;
 	if (adjustment < 0) adjustment = 0;
 	// cout << "ADJUSTMENT: " << adjustment << "\n";
 
