@@ -162,6 +162,8 @@ inline bool COMPUTED_GEOMETRY::transform(V3& v3, V3& new_v3) {
 }
 
 inline void COMPUTED_GEOMETRY::add_segment(SEGMENT& seg) {
+	//segments[num_segments++] = seg;
+	
 	V3 new_start; V3 new_end;
 	if (transform(seg.start, new_start) &&
 		transform(seg.end, new_end)) {
@@ -170,6 +172,8 @@ inline void COMPUTED_GEOMETRY::add_segment(SEGMENT& seg) {
 }
 
 inline void COMPUTED_GEOMETRY::add_sphere(SPHERE& sph) {
+	//spheres[num_spheres++] = sph;
+
 	V3 new_point;
 	if (transform(sph.point, new_point)) {
 		spheres[num_spheres++] = SPHERE(new_point, sph.color, sph.width);
@@ -177,6 +181,8 @@ inline void COMPUTED_GEOMETRY::add_sphere(SPHERE& sph) {
 }
 
 inline void COMPUTED_GEOMETRY::add_triangle(TRIANGLE& tri) {
+	//triangles[num_triangles++] = tri;
+
 	V3 p[3];
 	if (transform(tri.points[0], p[0]) &&
 		transform(tri.points[1], p[1]) &&
