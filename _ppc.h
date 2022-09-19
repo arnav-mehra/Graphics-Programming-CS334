@@ -9,9 +9,9 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 
 	float hfovd = DEG_TO_RAD(hfov);
 	c = V3(
-		-(float) w * 0.5f,
+		(float) -w * 0.5f,
 		(float) h * 0.5f,
-		-(float) w * 0.5f / tan(hfovd * 0.5f)
+		(float) -w * 0.5f / tan(hfovd * 0.5f)
 	);
 	M = M33(a, b, c);
 	M.transpose();
@@ -20,7 +20,7 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 
 bool PPC::Project(V3 P, V3& new_p) {
 	new_p = M_inv * (P - C);
-	if (new_p[Dim::Z] < 0.0f) {
+	if (new_p[Dim::Z] <= 0.0f) {
 		return false;
 	}
 	float z_inv = 1.0f / new_p[Dim::Z];

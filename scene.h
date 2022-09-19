@@ -21,8 +21,6 @@ public:
 	int frame;
 	float hfov;
 
-	M33 perspective;
-	V3 origin;
 	GEOMETRY geometry;
 
 	Scene();

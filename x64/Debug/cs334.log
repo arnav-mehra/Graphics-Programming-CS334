@@ -1,1 +1,18 @@
-﻿  cs334.vcxproj -> C:\Users\Arnav\Documents\GitHub\CS334\x64\Debug\CS334.exe
+﻿  scene.cpp
+C:\Users\mehra\Documents\GitHub\CS334\_ppc.h(10,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\mehra\Documents\GitHub\CS334\scene.cpp(26,27): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\mehra\Documents\GitHub\CS334\scene.cpp(27,27): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\mehra\Documents\GitHub\CS334\scene.cpp(28,27): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\mehra\Documents\GitHub\CS334\_V3.hpp(124): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(119): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(111): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(134): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(161): warning C4172: returning address of local variable or temporary: inverse
+C:\Users\mehra\Documents\GitHub\CS334\_V3.hpp(65): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(182): warning C4172: returning address of local variable or temporary: x
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(189): warning C4172: returning address of local variable or temporary: x
+C:\Users\mehra\Documents\GitHub\CS334\_V3.hpp(148): warning C4172: returning address of local variable or temporary: result
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(196): warning C4172: returning address of local variable or temporary
+C:\Users\mehra\Documents\GitHub\CS334\_M33.hpp(202): warning C4172: returning address of local variable or temporary: inverse
+C:\Users\mehra\Documents\GitHub\CS334\_V3.hpp(133): warning C4172: returning address of local variable or temporary: result
+  cs334.vcxproj -> C:\Users\mehra\Documents\GitHub\CS334\x64\Debug\CS334.exe
