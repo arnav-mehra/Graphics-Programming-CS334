@@ -55,17 +55,11 @@ public:
 	SEGMENT segments[1000];
 	TRIANGLE triangles[1000];
 
-	// preloaded geometry (check function for details)
 	GEOMETRY();
-	
 	GEOMETRY(vector<GEOMETRY>& geos);
-
 	GEOMETRY(vector<SPHERE> spheres, vector<SEGMENT> segments, vector<TRIANGLE> triangles);
 
-	void setup_pong();
-	void setup_tetris();
 	void add_axis();
-
 	inline void add_segment(SEGMENT seg);
 	inline void add_sphere(SPHERE sph);
 	inline void add_triangle(TRIANGLE tri);
@@ -84,8 +78,8 @@ public:
 
 	void recompute_geometry();
 
-	// rotate and translate point based on perspective and origin.
-	inline V3& transform(V3& v3);
+	// transform point based on PPC.
+	inline bool transform(V3& v3, V3& new_v3);
 
 	inline void add_segment(SEGMENT& seg);
 	inline void add_sphere(SPHERE& sph);

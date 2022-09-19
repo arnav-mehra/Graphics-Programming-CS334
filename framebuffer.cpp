@@ -20,61 +20,8 @@ FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, 
 
 void nextFrame(void* window) {
 	auto time_start = std::chrono::system_clock::now();
-	
-	if (PLAY_PONG) {
-		V3& p = scene->ball_pos;
-		V3& v = scene->ball_vel;
-		V3& p1 = scene->player1;
-		V3& p2 = scene->player2;
 
-		// wall bounce
-		if (p[Dim::X] <= -200 || p[Dim::X] >= 200) {
-			v[Dim::X] *= -1;
-		}
-
-		// player bounce
-		if (-195 <= p[Dim::Y] && p[Dim::Y] <= -190) {
-			if (p1[Dim::X] <= p[Dim::X] && p[Dim::X] <= p1[Dim::X] + 50)
-				v[Dim::Y] *= -1;
-		}
-		if (190 <= p[Dim::Y] && p[Dim::Y] <= 195) {
-			if (p2[Dim::X] <= p[Dim::X] && p[Dim::X] <= p2[Dim::X] + 50)
-				v[Dim::Y] *= -1;
-		}
-
-		// update score
-		if (p[Dim::Y] <= -200) {
-			scene->s2++;
-			cout << "PLAYER 2 SCORED!\n";
-			cout << scene->s1 << " - " << scene->s2 << '\n';
-			scene->ball_pos = V3(0, 0, 0);
-		}
-		if (p[Dim::Y] >= 200) {
-			scene->s1++;
-			cout << "PLAYER 1 SCORED!\n";
-			cout << scene->s1 << " - " << scene->s2 << '\n';
-			scene->ball_pos = V3(0, 0, 0);
-		}
-		p += v;
-		scene->geometry.setup_pong();
-	}
-	
-	if (PLAY_NAME_SCROLL) {
-		scene->origin += V3(3.2, 0, 0);
-		if (scene->origin[Dim::X] > scene->w) {
-			scene->origin = V3(0, (float)scene->h * 0.5f, 0.0f);
-		}
-	}
-
-	if (PLAY_TETRIS) {
-		if (scene->curr_shape == -1) {
-			scene->add_shape();
-		}
-		else {
-			scene->drop_shape();
-		}
-		scene->geometry.setup_tetris();
-	}
+	// change something
 
 	FrameBuffer* fb = (FrameBuffer*) window;
 	fb->SetBGR(0);
@@ -82,15 +29,13 @@ void nextFrame(void* window) {
 	fb->redraw();
 
 	auto time_end = std::chrono::system_clock::now();
-	float adjustment = 0.033 - (time_end - time_start).count() * 1e-6;
+	float adjustment = (1.0 / FPS) - (time_end - time_start).count() * 1e-6;
 	if (adjustment < 0) adjustment = 0;
-	// cout << "ADJUSTMENT: " << adjustment << "\n";
 
 	Fl::repeat_timeout(adjustment, nextFrame, window);
 }
 
 void FrameBuffer::startThread() {
-	//tr = thread([this] { this->nextFrame(); });
 	Fl::add_timeout(0.01, nextFrame, this);
 }
 
@@ -257,35 +202,12 @@ int FrameBuffer::handle(int event) {
 
 void FrameBuffer::KeyboardHandle() {
 	int key = Fl::event_key();
-	V3& p1 = scene->player1;
-	V3& p2 = scene->player2;
 	switch (key) {
-		case FL_Left: {
-			V3 new_p1 = p1 - V3(10, 0, 0);
-			if (-200 <= new_p1[Dim::X]) p1 = new_p1;
-			scene->move_left();
-			break;
-		}
-		case FL_Right: {
-			V3 new_p1 = p1 + V3(10, 0, 0);
-			if (new_p1[Dim::X] <= 150) p1 = new_p1;
-			scene->move_right();
-			break;
-		}
-		case FL_Up: {
-			V3 new_p2 = p2 - V3(10, 0, 0);
-			if (-200 <= new_p2[Dim::X]) p2 = new_p2;
-			break;
-		}
-		case FL_Down: {
-			scene->drop_shape();
-			V3 new_p2 = p2 + V3(10, 0, 0);
-			if (new_p2[Dim::X] <= 150) p2 = new_p2;
-			break;
-		}
-		case 'r': {
-			scene->rotate();
-		}
+		case FL_Left: break;
+		case FL_Right: break;
+		case FL_Up: break;
+		case FL_Down: break;
+		case 'r': break;
 	}
 }
 

@@ -8,6 +8,6 @@ public:
 	M33 M, M_inv;
 	int w, h;
 	PPC(float hfov, int _w, int _h);
-	V3 Project(V3& P);
+	bool PPC::Project(V3 P, V3& new_p);
 	V3 GetVD();
 };

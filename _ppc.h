@@ -18,12 +18,15 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 	M_inv = M.inverse();
 }
 
-V3 PPC::Project(V3& P) {
-	V3 new_p = M_inv * (P - C);
+bool PPC::Project(V3 P, V3& new_p) {
+	new_p = M_inv * (P - C);
+	if (new_p[Dim::Z] < 0.0f) {
+		return false;
+	}
 	float z_inv = 1.0f / new_p[Dim::Z];
 	new_p[Dim::X] *= z_inv;
 	new_p[Dim::Y] *= z_inv;
-	return new_p;
+	return true;
 }
 
 V3 PPC::GetVD() {
