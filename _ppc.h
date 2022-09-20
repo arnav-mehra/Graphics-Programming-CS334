@@ -7,7 +7,7 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 	a = V3(1.0f, 0.0f, 0.0f);
 	b = V3(0.0f, -1.0f, 0.0f);
 
-	float hfovd = DEG_TO_RAD(hfov);
+	hfovd = DEG_TO_RAD(hfov);
 	c = V3(
 		(float) -w * 0.5f,
 		(float) h * 0.5f,
@@ -25,6 +25,24 @@ void PPC::transform(M33& rot) {
 	M = M33(a, b, c);
 	M.transpose();
 	M_inv = M.inverse();
+}
+
+void PPC::reset() {
+	a = V3(1.0f, 0.0f, 0.0f);
+	b = V3(0.0f, -1.0f, 0.0f);
+	c = V3(
+		(float)-w * 0.5f,
+		(float)h * 0.5f,
+		(float)-w * 0.5f / tan(hfovd * 0.5f)
+	);
+
+	M = M33(a, b, c);
+	M.transpose();
+	M_inv = M.inverse();
+}
+
+void PPC::translate(V3 v) {
+	C += v;
 }
 
 bool PPC::Project(V3 P, V3& new_p) {

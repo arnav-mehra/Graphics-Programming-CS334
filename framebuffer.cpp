@@ -205,39 +205,67 @@ int FrameBuffer::handle(int event) {
 void FrameBuffer::KeyboardHandle() {
 	int key = Fl::event_key();
 	switch (key) {
+		// PAN
 		case FL_Left: {
-			M33 rot = M33(Dim::Y, 0.01);
+			M33 rot = M33(Dim::Y, 0.01f);
 			scene->ppc->transform(rot);
 			redraw();
 			break;
 		}
 		case FL_Right: {
-			M33 rot = M33(Dim::Y, -0.01);
+			M33 rot = M33(Dim::Y, -0.01f);
 			scene->ppc->transform(rot);
 			redraw();
 			break;
 		}
+		// ROLL
 		case FL_Up: {
-			M33 rot = M33(Dim::X, -0.01);
+			M33 rot = M33(Dim::X, -0.01f);
 			scene->ppc->transform(rot);
 			redraw();
 			break;
 		}
 		case FL_Down: {
-			M33 rot = M33(Dim::X, 0.01);
+			M33 rot = M33(Dim::X, 0.01f);
 			scene->ppc->transform(rot);
 			redraw();
 			break;
 		}
-		case 't': {
-			M33 rot = M33(Dim::Z, 0.01);
+		// TILT
+		case 'e': {
+			M33 rot = M33(Dim::Z, 0.01f);
 			scene->ppc->transform(rot);
 			redraw();
 			break;
 		}
 		case 'r': {
-			M33 rot = M33(Dim::Z, -0.01);
+			M33 rot = M33(Dim::Z, -0.01f);
 			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		// TRANSLATE
+		case 'w': {
+			V3 tran = V3(0.0f, 0.0f, -1.0f);
+			scene->ppc->translate(tran);
+			redraw();
+			break;
+		}
+		case 'a': {
+			V3 tran = V3(-1.0f, 0.0f, 0.0f);
+			scene->ppc->translate(tran);
+			redraw();
+			break;
+		}
+		case 's': {
+			V3 tran = V3(0.0f, 0.0f, 1.0f);
+			scene->ppc->translate(tran);
+			redraw();
+			break;
+		}
+		case 'd': {
+			V3 tran = V3(1.0f, 0.0f, 0.0f);
+			scene->ppc->translate(tran);
 			redraw();
 			break;
 		}
