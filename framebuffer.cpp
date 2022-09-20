@@ -180,6 +180,8 @@ void FrameBuffer::applyGeometry() {
 }
 
 void FrameBuffer::draw() {
+	SetBGR(0);
+	applyGeometry();
 	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 }
 
@@ -203,16 +205,47 @@ int FrameBuffer::handle(int event) {
 void FrameBuffer::KeyboardHandle() {
 	int key = Fl::event_key();
 	switch (key) {
-		case FL_Left: break;
-		case FL_Right: break;
-		case FL_Up: break;
-		case FL_Down: break;
-		case 'r': break;
+		case FL_Left: {
+			M33 rot = M33(Dim::Y, 0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		case FL_Right: {
+			M33 rot = M33(Dim::Y, -0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		case FL_Up: {
+			M33 rot = M33(Dim::X, -0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		case FL_Down: {
+			M33 rot = M33(Dim::X, 0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		case 't': {
+			M33 rot = M33(Dim::Z, 0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
+		case 'r': {
+			M33 rot = M33(Dim::Z, -0.01);
+			scene->ppc->transform(rot);
+			redraw();
+			break;
+		}
 	}
 }
 
 void FrameBuffer::SetBGR(unsigned int bgr) {
-	for (int uv = 0; uv < w*h; uv++)
+	for (int uv = 0; uv < w * h; uv++)
 		pix[uv] = bgr;
 }
 

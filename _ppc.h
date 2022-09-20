@@ -3,7 +3,7 @@
 #include "M33.hpp"
 
 PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
-	C = V3(320.0f, 240.0f, 0.0f);
+	C = V3(0.0f, 0.0f, 0.0f);
 	a = V3(1.0f, 0.0f, 0.0f);
 	b = V3(0.0f, -1.0f, 0.0f);
 
@@ -18,16 +18,18 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 	M_inv = M.inverse();
 }
 
-bool PPC::Project(V3 P, V3& new_p) {
-	//cout << M_inv;
-	//cout << P;
-	//cout << C;
+void PPC::transform(M33& rot) {
+	a = rot * a;
+	b = rot * b;
+	c = rot * c;
+	M = M33(a, b, c);
+	M.transpose();
+	M_inv = M.inverse();
+}
 
+bool PPC::Project(V3 P, V3& new_p) {
 	V3 delta = P - C;
 	V3 res = M_inv * delta;
-
-	//cout << delta;
-	//cout << res;
 
 	new_p = res;
 	if (new_p[Dim::Z] <= 0.0f) {
