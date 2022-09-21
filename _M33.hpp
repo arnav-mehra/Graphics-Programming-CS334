@@ -135,11 +135,11 @@ M33& M33::operator*(float scalar) {
 }
 
 void M33::operator/=(float scalar) {
-    (*this) *= 1 / scalar;
+    (*this) *= 1.0f / scalar;
 }
 
 M33& M33::operator/(float scalar) {
-    return (*this) * (1 / scalar);
+    return (*this) * (1.0f / scalar);
 }
 
 void M33::transpose() {
@@ -193,7 +193,6 @@ inline M33& M33::inverse() {
     M33& m = *this;
     V3 col1 = m[Dim::Y] ^ m[Dim::Z];
     float det = (*this)[Dim::X] * col1;
-    if (det == 0) return M33();
     V3 col2 = m[Dim::Z] ^ m[Dim::X];
     V3 col3 = m[Dim::X] ^ m[Dim::Y];
     M33 inverse = M33(col1, col2, col3);

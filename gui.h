@@ -11,15 +11,15 @@ public:
 	GUI();
 	Fl_Double_Window *uiw;
 private:
-	inline void cb_LoadTiffButton_i(Fl_Button*, void*);
-	static void cb_LoadTiffButton(Fl_Button*, void*);
-	inline void cb_SaveTiffButton_i(Fl_Button*, void*);
-	static void cb_SaveTiffButton(Fl_Button*, void*);
+	inline void cb_LoadTxtButton_i(Fl_Button*, void*);
+	static void cb_LoadTxtButton(Fl_Button*, void*);
+	inline void cb_SaveTxtButton_i(Fl_Button*, void*);
+	static void cb_SaveTxtButton(Fl_Button*, void*);
 	inline void cb_Play_i(Fl_Return_Button*, void*);
 	static void cb_Play(Fl_Return_Button*, void*);
 public:
 	void show();
-	void LoadTiffButton_cb();
-	void SaveTiffButton_cb();
+	void LoadTxtButton_cb();
+	void SaveTxtButton_cb();
 	void Play_cb();
 };

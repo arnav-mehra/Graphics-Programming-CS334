@@ -72,15 +72,16 @@ inline void V3::operator*=(float scalar) {
 }
 
 inline V3& V3::operator/(float scalar) {
-    return (*this) * (1 / scalar);
+    V3 res = (*this) * (1.0f / scalar);
+    return res;
 }
 
 inline void V3::operator/=(float scalar) {
-    (*this) *= (1 / scalar);
+    (*this) *= (1.0f / scalar);
 }
 
 inline void V3::normalize() {
-    float scalar = 1 / this->length();
+    float scalar = 1.0f / this->length();
     (*this) *= scalar;
 }
 
@@ -93,9 +94,9 @@ inline void V3::normalize_quake3() {
     (*this) *= scalar;
 }
 
-// Not trying to cheat here, I just think its cool.
+// Cool trick (fast inv sqrt).
 // Source: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-// Note: Slightly faster, but far more inaccurate.
+// Note: Slightly faster, but far less accurate.
 inline void V3::quake3(float &y) {
     float x2 = y * 0.5F;
     long i = *(long*) &y;

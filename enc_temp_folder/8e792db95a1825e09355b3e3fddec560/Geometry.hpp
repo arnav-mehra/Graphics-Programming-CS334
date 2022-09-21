@@ -78,7 +78,6 @@ public:
 	V3 getCenter();
 	void translate(V3 tran);
 	void scale(float s);
-	void rotate(V3 axis_start, V3 axis_end, float alpha);
 
 	void setAsBox();
 };

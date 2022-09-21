@@ -2,20 +2,20 @@
 #include "gui.h"
 #include "scene.h"
 
-void GUI::cb_LoadTiffButton_i(Fl_Button*, void*) {
-    LoadTiffButton_cb();
+void GUI::cb_LoadTxtButton_i(Fl_Button*, void*) {
+    LoadTxtButton_cb();
 }
 
-void GUI::cb_LoadTiffButton(Fl_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_LoadTiffButton_i(o,v);
+void GUI::cb_LoadTxtButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LoadTxtButton_i(o,v);
 }
 
-void GUI::cb_SaveTiffButton_i(Fl_Button*, void*) {
-    SaveTiffButton_cb();
+void GUI::cb_SaveTxtButton_i(Fl_Button*, void*) {
+    SaveTxtButton_cb();
 }
 
-void GUI::cb_SaveTiffButton(Fl_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_SaveTiffButton_i(o, v);
+void GUI::cb_SaveTxtButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_SaveTxtButton_i(o, v);
 }
 
 void GUI::cb_Play_i(Fl_Return_Button*, void*) {
@@ -31,14 +31,14 @@ GUI::GUI() {
         uiw = new Fl_Double_Window(199, 197, "GUI");
         uiw->user_data((void*)(this));
         {
-            Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Load Tiff");
+            Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Load Txt");
             o->selection_color(FL_DARK_RED);
-            o->callback((Fl_Callback*)cb_LoadTiffButton);
+            o->callback((Fl_Callback*)cb_LoadTxtButton);
         } // Fl_Button* o
         {
-            Fl_Button* o = new Fl_Button(15, 80, 150, 50, "Save Tiff");
+            Fl_Button* o = new Fl_Button(15, 80, 150, 50, "Save Txt");
             o->selection_color(FL_DARK_RED);
-            o->callback((Fl_Callback*)cb_SaveTiffButton);
+            o->callback((Fl_Callback*)cb_SaveTxtButton);
         } // Fl_Button* o
         {
             Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Play");
@@ -57,14 +57,14 @@ void GUI::show() {
     uiw->show();
 }
 
-void GUI::LoadTiffButton_cb() {
-    scene->LoadTiffButton();
+void GUI::LoadTxtButton_cb() {
+    scene->LoadTxtButton();
 }
 
-void GUI::SaveTiffButton_cb() {
-    scene->SaveTiffButton();
+void GUI::SaveTxtButton_cb() {
+    scene->SaveTxtButton();
 }
 
 void GUI::Play_cb() {
-    scene->TranslateImage();
+    scene->TransitionCamera();
 }

@@ -25,11 +25,11 @@ public:
 	void zoom(float _hfovd);
 
 	void interpolate(PPC& cam1, PPC& cam2, float t) {
-		a = cam2.a * t + cam1.a * (1.0f - t);
-		b = cam2.b * t + cam1.b * (1.0f - t);
-		c = cam2.c * t + cam1.c * (1.0f - t);
-		C = cam2.C * t + cam1.C * (1.0f - t);
-		hfovd = cam2.hfovd * t + cam1.hfovd * (1.0f - t);
+		a = cam1.a * t + cam2.a * (1.0f - t);
+		b = cam1.b * t + cam2.b * (1.0f - t);
+		c = cam1.c * t + cam2.c * (1.0f - t);
+		C = cam1.C * t + cam2.C * (1.0f - t);
+		hfovd = cam1.hfovd * t + cam2.hfovd * (1.0f - t);
 	}
 
 	void reset();

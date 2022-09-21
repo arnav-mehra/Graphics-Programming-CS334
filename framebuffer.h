@@ -3,10 +3,11 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Gl_Window.H>
 #include <GL/glut.h>
-#include <thread>
 
+#include "ppc.h"
 #include "V3.hpp"
 #include "Geometry.hpp"
+
 
 class FrameBuffer : public Fl_Gl_Window {
 public:
@@ -14,18 +15,22 @@ public:
 	int w, h;
 	V3 *xyz;
 	COMPUTED_GEOMETRY compute;
-	thread tr;
+
+	PPC cam1;
+	PPC cam2;
+	PPC cam3;
+	float transition1;
+	float transition2;
 
 	FrameBuffer(int u0, int v0, int _w, int _h);
-	
+
 	void draw();
 	void KeyboardHandle();
 	int handle(int guievent);
 	void SetBGR(unsigned int bgr);
 	void applyGeometry();
-	// void nextFrame(void* window);
 	void startThread();
 
-	void FrameBuffer::LoadTiff();
-	void FrameBuffer::SaveAsTiff();
+	void LoadTiff();
+	void SaveAsTiff();
 };

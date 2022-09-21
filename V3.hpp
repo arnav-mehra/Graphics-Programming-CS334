@@ -5,7 +5,7 @@
 #include "Dimension.hpp"
 
 #define PI 3.14159265358979323846
-#define DEG_TO_RAD(x) ((x) * (PI / 180.0f))
+#define DEG_TO_RAD(x) ((x) * ((float) PI / 180.0f))
 
 using namespace std;
 

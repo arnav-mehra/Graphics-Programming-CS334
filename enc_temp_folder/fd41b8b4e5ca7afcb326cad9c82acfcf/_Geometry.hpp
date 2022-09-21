@@ -135,14 +135,6 @@ void MESH::scale(float s) {
 	}
 }
 
-void MESH::rotate(V3 axis_start, V3 axis_end, float alpha) {
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			p.point.rotate(axis_start, axis_end, alpha);
-		}
-	}
-}
-
 void MESH::setAsBox() {
 	auto A = SPHERE(V3(100.0f, 100.0f, -200.0f));
 	auto B = SPHERE(V3(100.0f, 0.0f, -200.0f), COLOR(255, 255, 0));
@@ -313,10 +305,12 @@ inline void COMPUTED_GEOMETRY::add_mesh(MESH& mesh) {
 		for (int i = 0; i < mesh.num_triangles; i++) {
 			TRIANGLE& tri = mesh.triangles[i];
 			SPHERE p1, p2, p3;
-			
+
+			cout << "try\n";
 			if (transform(tri.points[0].point, p1.point) &&
 				transform(tri.points[1].point, p2.point) &&
 				transform(tri.points[2].point, p3.point)) {
+				cout << "done\n";
 				p1.color = tri.points[0].color;
 				p2.color = tri.points[1].color;
 				p3.color = tri.points[2].color;

@@ -7,7 +7,7 @@
 #include "gui.h"
 #include "ppc.h"
 
-#define FPS 30.0
+#define FPS 1.0f
 #define TIFF_FILE_IN "name.tif" // what we read from
 #define TIFF_FILE_OUT "random.tif" // what we write to
 
@@ -19,14 +19,13 @@ public:
 
 	int w, h;
 	int frame;
-	float hfov;
 
 	GEOMETRY geometry;
 
 	Scene();
-	void LoadTiffButton();
-	void SaveTiffButton();
-	void TranslateImage();
+	void LoadTxtButton();
+	void SaveTxtButton();
+	void TransitionCamera();
 };
 
 extern Scene *scene;
