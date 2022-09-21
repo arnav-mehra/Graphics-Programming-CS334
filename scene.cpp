@@ -17,29 +17,24 @@ Scene::Scene() {
 
 	gui = new GUI();
 	gui->show();
-	ppc = new PPC(w, h);
+	ppc = new PPC();
 
-	//// ADDS BOX
-	MESH m;
-	m.setAsBox();
-	geometry.add_mesh(m);
+	// ADDS BOX
+	{
+		MESH m;
+		m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
+		geometry.add_mesh(m);
+	}
 
-	//// COOL DOTS
+	// SPHERE WIRE FRAME
 	//{
-	//	V3 vec = V3(0.0f, 0.0f, -200.0f);
-	//	M33 rot1 = M33(Dim::Y, 2.0f * PI / 64.0f);
-	//	M33 rot2 = M33(Dim::X, 2.0f * PI / 64.0f);
-	//	M33 rot(1);
-	//	for (int theta = 0; theta < 64; theta++) {
-	//		for (int phi = 0; phi < 64; phi++) {
-	//			V3 new_vec = rot * vec;
-	//			SPHERE s = SPHERE(new_vec, COLOR(255, 0, 0), 10);
-	//			geometry.add_sphere(s);
-	//			rot = rot1 * rot;
-	//		}
-	//		rot = rot2 * rot;
-	//	}
+	//	MESH m;
+	//	m.setAsSphere(V3(0.0f, 0.0f, -1000.0f), 20U, 200.0f);
+	//	geometry.add_mesh(m);
 	//}
+
+	rotation_axis1 = V3(0.0f, -1.0f, -1.0f);
+	rotation_axis2 = V3(0.0f, 1.0f, 1.0f);
 
 	int u0 = 16, v0 = 40;
 	fb = new FrameBuffer(u0, v0, w, h);
@@ -57,6 +52,21 @@ void Scene::LoadTxtButton() {
 
 void Scene::SaveTxtButton() {
 	ppc->SaveAsTxt();
+	fb->redraw();
+}
+
+void Scene::LoadBinButton() {
+	geometry.meshes[IO_MESH].LoadBin();
+	fb->redraw();
+}
+
+void Scene::SaveBinButton() {
+	geometry.meshes[IO_MESH].SaveAsBin();
+	fb->redraw();
+}
+
+void Scene::RotationButton() {
+	geometry.meshes[IO_MESH].rotate(rotation_axis1, rotation_axis2, 0.1f);
 	fb->redraw();
 }
 

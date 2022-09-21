@@ -97,7 +97,7 @@ inline V3& M33::operator[](int i) {
     return this->matrix[i];
 }        
 
-M33& M33::operator*(M33& matrix) {
+M33 M33::operator*(M33& matrix) {
     M33 result = M33();
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -111,7 +111,7 @@ M33& M33::operator*(M33& matrix) {
     return result;
 }
 
-V3& M33::operator*(V3& vector) {
+V3 M33::operator*(V3& vector) {
     V3 result = V3();
     result[Dim::X] = (*this)[Dim::X] * vector;
     result[Dim::Y] = (*this)[Dim::Y] * vector;
@@ -125,20 +125,19 @@ void M33::operator*=(float scalar) {
     (*this)[Dim::Z] *= scalar;
 }
 
-M33& M33::operator*(float scalar) {
-    M33 result = M33(
+M33 M33::operator*(float scalar) {
+    return M33(
         (*this)[Dim::X] * scalar,
         (*this)[Dim::Y] * scalar,
         (*this)[Dim::Z] * scalar
     );
-    return result;
 }
 
 void M33::operator/=(float scalar) {
     (*this) *= 1.0f / scalar;
 }
 
-M33& M33::operator/(float scalar) {
+M33 M33::operator/(float scalar) {
     return (*this) * (1.0f / scalar);
 }
 
@@ -149,7 +148,7 @@ void M33::transpose() {
 }
 
 // Note: must be positive definite matrix
-M33& M33::inverse_iter(int max_iter) {
+M33 M33::inverse_iter(int max_iter) {
     M33 inverse = M33();
     V3 v1 = V3(1, 0, 0);
     inverse[Dim::X] = conjugate_grad(v1, max_iter);
@@ -162,7 +161,7 @@ M33& M33::inverse_iter(int max_iter) {
 }
 
 // CS314 time (from 1 of my HW assignments)!
-inline V3& M33::conjugate_grad(V3 &b, int maxiter) {
+inline V3 M33::conjugate_grad(V3 &b, int maxiter) {
     // A = matrix (this)
     M33 &A = *this;
     // x = our current guess
@@ -189,7 +188,7 @@ inline V3& M33::conjugate_grad(V3 &b, int maxiter) {
     return x;
 }
 
-inline M33& M33::inverse() {
+inline M33 M33::inverse() {
     M33& m = *this;
     V3 col1 = m[Dim::Y] ^ m[Dim::Z];
     float det = (*this)[Dim::X] * col1;

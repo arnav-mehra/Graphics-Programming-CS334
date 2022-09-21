@@ -4,9 +4,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <math.h>
 
 #include "Dimension.hpp"
-#include "V3.hpp"
 #include "M33.hpp"
 #include "scene.hpp"
 
@@ -17,25 +17,25 @@ COLOR::COLOR(U32 v) {
 }
 
 COLOR::COLOR(U32 r, U32 g, U32 b) {
-	value = ((b << 24) | (g << 16) | (r << 8));
+	value = ((b << 16) | (g << 8) | r);
 }
 
 U32 COLOR::getR() const {
-	return (value >> 8) & 255;
+	return (value) & 255;
 }
 
 U32 COLOR::getG() const {
-	return (value >> 16) & 255;
+	return (value >> 8) & 255;
 }
 
 U32 COLOR::getB() const {
-	return (value >> 24) & 255;
+	return (value >> 16) & 255;
 }
 
 inline COLOR COLOR::operator*(const float scalar) {
-	U32 r = getR() * scalar;
-	U32 g = getG() * scalar;
-	U32 b = getB() * scalar;
+	U32 r = (U32) (getR() * scalar);
+	U32 g = (U32) (getG() * scalar);
+	U32 b = (U32) (getB() * scalar);
 	return COLOR(r, g, b);
 }
 
@@ -97,12 +97,51 @@ MESH::MESH() {}
 
 MESH::MESH(vector<TRIANGLE> tris) : MESH() {
 	for (TRIANGLE& tri : tris) {
-		triangles[num_triangles++] = tri;
+		add_triangle(tri);
 	}
 }
 
 MESH::MESH(vector<TRIANGLE> tris, bool renderAsWF) : MESH(tris) {
 	renderAsWireFrame = renderAsWF;
+}
+
+void MESH::add_triangle(TRIANGLE tri) {
+	if (num_triangles >= MESH_TRI_CAPACITY) return;
+
+	V3& p1 = tri.points[0].point;
+	V3& p2 = tri.points[1].point;
+	V3& p3 = tri.points[2].point;
+
+	edge_connectivity[num_triangles][0] = -1;
+	edge_connectivity[num_triangles][1] = -1;
+	edge_connectivity[num_triangles][2] = -1;
+
+	for (int i = 0; i < num_triangles; i++) {
+		V3& t1 = triangles[i].points[0].point;
+		V3& t2 = triangles[i].points[1].point;
+		if ((cmp(p1, t1) || cmp(p1, t2)) && (cmp(p2, t1) || cmp(p2, t2))) {
+			edge_connectivity[num_triangles][0] = i;
+			break;
+		}
+	}
+	for (int i = 0; i < num_triangles; i++) {
+		V3& t2 = triangles[i].points[1].point;
+		V3& t3 = triangles[i].points[2].point;
+		if ((cmp(p2, t2) || cmp(p2, t3)) && (cmp(p3, t2) || cmp(p3, t3))) {
+			edge_connectivity[num_triangles][1] = i;
+			break;
+		}
+	}
+	for (int i = 0; i < num_triangles; i++) {
+		V3& t1 = triangles[i].points[0].point;
+		V3& t3 = triangles[i].points[2].point;
+		if ((cmp(p3, t3) || cmp(p3, t1)) && (cmp(p1, t3) || cmp(p1, t1))) {
+			edge_connectivity[num_triangles][2] = i;
+			break;
+		}
+	}
+
+	triangles[num_triangles++] = tri;
 }
 
 V3 MESH::getCenter() {
@@ -113,7 +152,7 @@ V3 MESH::getCenter() {
 			sum += p.point;
 		}
 	}
-	V3 res = sum * (1.0f / (float) num_triangles);
+	V3 res = sum * (1.0f / ((float) num_triangles * 3.0f));
 	return res;
 }
 
@@ -125,8 +164,14 @@ void MESH::translate(V3 tran) {
 	}
 }
 
+void MESH::position(V3 pos) {
+	V3 center = getCenter();
+	translate(pos - center);
+}
+
 void MESH::scale(float s) {
 	V3 center = getCenter();
+	cout << "center" << center;
 	for (int i = 0; i < num_triangles; i++) {
 		for (SPHERE& p : triangles[i].points) {
 			V3 delta = p.point - center;
@@ -136,25 +181,70 @@ void MESH::scale(float s) {
 	}
 }
 
-void MESH::rotate(V3& axis_start, V3& axis_end, float alpha) {
+void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
+	axis2 -= axis1;
+	V3 axis = axis2;
+	// rotate about new axis vector (axis 2)
+	// xy rotation to eliminate axis y dimension
+	float xy_len_inverse = 1 / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
+	float xy_cos_theta = axis[0] * xy_len_inverse;
+	float xy_sin_theta = axis[1] * xy_len_inverse;
+	M33 xy_rotation = M33(Dim::Z, -xy_sin_theta, xy_cos_theta);
+	M33 xy_rotation_inv = M33(Dim::Z, xy_sin_theta, xy_cos_theta);
+	if (isnan(xy_len_inverse) || isinf(xy_len_inverse)) {
+		xy_rotation = M33(1);
+		xy_rotation_inv = M33(1);
+	}
+	// perform xy rotation
+	axis = xy_rotation * axis;
+	// xz rotation to eliminate axis z dimension
+	float xz_len_inverse = 1 / sqrt(axis[0] * axis[0] + axis[2] * axis[2]);
+	float xz_cos_theta = axis[0] * xz_len_inverse;
+	float xz_sin_theta = axis[2] * xz_len_inverse;
+	M33 xz_rotation = M33(Dim::Y, xz_sin_theta, xz_cos_theta);
+	M33 xz_rotation_inv = M33(Dim::Y, -xz_sin_theta, xz_cos_theta);
+	if (isnan(xy_len_inverse) || isinf(xy_len_inverse)) {
+		xz_rotation = M33(1);
+		xz_rotation_inv = M33(1);
+	}
+	M33 yz_rotation = M33(Dim::X, alpha);
+
+	M33 total_rotation = xz_rotation * xy_rotation;
+	total_rotation = yz_rotation * total_rotation;
+	total_rotation = xz_rotation_inv * total_rotation;
+	total_rotation = xy_rotation_inv * total_rotation;
+
+
 	for (int i = 0; i < num_triangles; i++) {
 		for (SPHERE& p : triangles[i].points) {
-			V3& cpy = p.point;
-			cpy.rotate(axis_start, axis_end, alpha);
+			V3& v = p.point;
+
+			// CAUSING LINKING ISSUES ?!?!
+			// v.rotate(axis_start, axis_end, alpha);
+						
+			v -= axis1;
+			v = total_rotation * v;
+			v += axis1;
 		}
 	}
 }
 
-void MESH::setAsBox() {
-	auto A = SPHERE(V3(100.0f, 100.0f, -200.0f));
-	auto B = SPHERE(V3(100.0f, 0.0f, -200.0f), COLOR(255, 255, 0));
-	auto C = SPHERE(V3(0.0f, 0.0f, -200.0f));
-	auto D = SPHERE(V3(0.0f, 100.0f, -200.0f), COLOR(255, 255, 0));
+bool MESH::cmp(V3& v1, V3& v2) {
+	return v1[Dim::X] == v2[Dim::X] && v1[Dim::Y] == v2[Dim::Y] && v1[Dim::Z] == v2[Dim::Z];
+}
 
-	auto E = SPHERE(V3(100.0f, 100.0f, -300.0f), COLOR(255, 255, 0));
-	auto F = SPHERE(V3(100.0f, 0.0f, -300.0f));
-	auto G = SPHERE(V3(0.0f, 0.0f, -300.0f), COLOR(255, 255, 0));
-	auto H = SPHERE(V3(0.0f, 100.0f, -300.0f));
+void MESH::setAsBox(V3 center, float radius) {
+	num_triangles = 0;
+
+	auto A = SPHERE(V3(1.0f, 1.0f, 1.0f));
+	auto B = SPHERE(V3(1.0f, -1.0f, 1.0f), COLOR(255, 255, 0));
+	auto C = SPHERE(V3(-1.0f, -1.0f, 1.0f));
+	auto D = SPHERE(V3(-1.0f, 1.0f, 1.0f), COLOR(255, 255, 0));
+
+	auto E = SPHERE(V3(1.0f, 1.0f, -1.0f), COLOR(255, 255, 0));
+	auto F = SPHERE(V3(1.0f, -1.0f, -1.0f));
+	auto G = SPHERE(V3(-1.0f, -1.0f, -1.0f), COLOR(255, 255, 0));
+	auto H = SPHERE(V3(-1.0f, 1.0f, -1.0f));
 
 	*this = MESH({
 		// ABCD
@@ -176,6 +266,62 @@ void MESH::setAsBox() {
 		TRIANGLE({ C, B, F }),
 		TRIANGLE({ C, G, F })
 	});
+	scale(radius);
+	position(center);
+}
+
+void MESH::setAsSphere(V3 center, U32 hres, float radius) {
+	num_triangles = 0;
+	hres = min(hres, 20U);
+
+	V3 vec = V3(0.0f, 0.0f, 1.0f);
+	U32 vres = hres;
+	float alpha = 2.0f * (float) PI / (float) hres;
+	M33 rot1 = M33(Dim::Y, alpha);
+	M33 rot2 = M33(Dim::X, -alpha);
+	M33 rot(1);
+
+	vector<vector<SPHERE>> vecs(vres, vector<SPHERE>(hres));
+	for (int theta = 0; theta < vres; theta++) {
+		for (int phi = 0; phi < hres; phi++) {
+			vecs[theta][phi] = SPHERE(vec);
+			vec = rot1 * vec;
+			vec.normalize();
+		}
+		vec = rot2 * vec;
+		vec.normalize();
+	}
+
+	for (int a = 0; a < vres; a++) {
+		for (int b = 0; b < hres / 2; b++) {
+			int i = (a + 1) % hres;
+			int j = (b + 1) % hres;
+			SPHERE& v1 = vecs[a][b];
+			SPHERE& v2 = vecs[i][b];
+			SPHERE& v3 = vecs[a][j];
+			SPHERE& v4 = vecs[i][j];
+			add_triangle(TRIANGLE({ v1, v2, v4 }));
+			add_triangle(TRIANGLE({ v1, v3, v4 }));
+		}
+	}
+	position(center);
+	scale(radius);
+}
+
+// load a txt file
+void MESH::LoadBin() {
+	cout << "Loading Mesh Bin...\n";
+	ifstream in(INPUT_BIN);
+	in.read((char*)this, sizeof(MESH));
+	in.close();
+}
+
+// save as txt file
+void MESH::SaveAsBin() {
+	cout << "Saving Mesh Bin...\n";
+	ofstream out(OUTPUT_BIN);
+	out.write((char*)this, sizeof(MESH));
+	out.close();
 }
 
 GEOMETRY::GEOMETRY() {}
@@ -223,19 +369,23 @@ void GEOMETRY::add_axis() {
 }
 
 inline void GEOMETRY::add_sphere(SPHERE sph) {
-	spheres[num_spheres++] = sph;
+	if (num_spheres < SPH_CAPACITY)
+		spheres[num_spheres++] = sph;
 }
 
 inline void GEOMETRY::add_segment(SEGMENT seg) {
+	if (num_segments < SEG_CAPACITY)
 	segments[num_segments++] = seg;
 }
 
 inline void GEOMETRY::add_triangle(TRIANGLE tri) {
-	triangles[num_triangles++] = tri;
+	if (num_triangles < TRI_CAPACITY)
+		triangles[num_triangles++] = tri;
 }
 
 inline void GEOMETRY::add_mesh(MESH mesh) {
-	meshes[num_meshes++] = mesh;
+	if (num_meshes < MESH_CAPACITY)
+		meshes[num_meshes++] = mesh;
 }
 
 COMPUTED_GEOMETRY::COMPUTED_GEOMETRY() {
@@ -319,13 +469,17 @@ inline void COMPUTED_GEOMETRY::add_mesh(MESH& mesh) {
 			if (transform(tri.points[0].point, p1.point) &&
 				transform(tri.points[1].point, p2.point) &&
 				transform(tri.points[2].point, p3.point)) {
+
 				p1.color = tri.points[0].color;
 				p2.color = tri.points[1].color;
 				p3.color = tri.points[2].color;
 				
-				segments[num_segments++] = SEGMENT(p1, p2);
-				segments[num_segments++] = SEGMENT(p2, p3);
-				segments[num_segments++] = SEGMENT(p3, p1);
+				if (mesh.edge_connectivity[i][0] == -1)
+					segments[num_segments++] = SEGMENT(p1, p2);
+				if (mesh.edge_connectivity[i][1] == -1)
+					segments[num_segments++] = SEGMENT(p2, p3);
+				if (mesh.edge_connectivity[i][2] == -1)
+					segments[num_segments++] = SEGMENT(p3, p1);
 			}
 		}
 	}

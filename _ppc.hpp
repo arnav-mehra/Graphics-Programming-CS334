@@ -2,28 +2,8 @@
 
 #include "ppc.hpp"
 
-
-PPC::PPC() {}
-
-PPC::PPC(int _w, int _h) : w(_w), h(_h) {
-	hfovd = DEG_TO_RAD(60.0f);
-
-	C = V3(0.0f, 0.0f, 0.0f);
-
-	a = V3(1.0f, 0.0f, 0.0f);
-	b = V3(0.0f, -1.0f, 0.0f);
-	c = V3(
-		(float) -w * 0.5f,
-		(float) h * 0.5f,
-		(float) -w * 0.5f / tan(hfovd * 0.5f)
-	);
-
-	M = M33(a, b, c);
-	cout << M;
-	M.transpose();
-	cout << M;
-	M_inv = M.inverse();
-	cout << M_inv;
+PPC::PPC() {
+	reset();
 }
 
 void PPC::rotate(M33& rot) {
@@ -44,9 +24,9 @@ void PPC::reset() {
 	a = V3(1.0f, 0.0f, 0.0f);
 	b = V3(0.0f, -1.0f, 0.0f);
 	c = V3(
-		(float)-w * 0.5f,
-		(float)h * 0.5f,
-		(float)-w * 0.5f / tan(hfovd * 0.5f)
+		(float)-scene->w * 0.5f,
+		(float) scene->h * 0.5f,
+		(float)-scene->w * 0.5f / tan(hfovd * 0.5f)
 	);
 
 	M = M33(a, b, c);
@@ -55,12 +35,16 @@ void PPC::reset() {
 }
 
 void PPC::translateLR(float v) {
-	V3 delta = a * v;
+	V3 a_cpy = a;
+	a_cpy.normalize();
+	V3 delta = a_cpy * v;
 	C += delta;
 }
 
 void PPC::translateUD(float v) {
-	V3 delta = b * v;
+	V3 b_cpy = b;
+	b_cpy.normalize();
+	V3 delta = b_cpy * v;
 	C += delta;
 }
 
@@ -72,12 +56,15 @@ void PPC::translateFB(float v) {
 
 void PPC::zoom(float hfovd_inc) {
 	hfovd += DEG_TO_RAD(hfovd_inc);
-	hfovd = max(DEG_TO_RAD(10.0f), hfovd);
-	hfovd = min(DEG_TO_RAD(360.0f), hfovd);
 
 	V3 vd = GetVD();
 	
-	c = a * GetPPu() - b * GetPPv() + vd * hfovd;
+	// c = a * GetPPu() - b * GetPPv() + vd * hfovd;
+	c = V3(
+		(float)-scene->w * 0.5f,
+		(float)scene->h * 0.5f,
+		(float)-scene->w * 0.5f / tan(hfovd * 0.5f)
+	);
 
 	M = M33(a, b, c);
 	M.transpose();
@@ -98,6 +85,25 @@ bool PPC::Project(V3 P, V3& new_p) {
 	return true;
 }
 
+void PPC::interpolate(PPC& cam1, PPC& cam2, float t) {
+	C = cam2.C * t + cam1.C * (1.0f - t);
+
+	a = cam2.a * t + cam1.a * (1.0f - t);
+
+	b = cam2.b * t + cam1.b * (1.0f - t);
+
+	c = cam2.c * t + cam1.c * (1.0f - t);
+	b.normalize();
+
+	hfovd = cam2.hfovd * t + cam1.hfovd * (1.0f - t);
+	//V3 vd = GetVD();
+	//c = a * GetPPu() - b * GetPPv() + vd * hfovd;
+
+	M = M33(a, b, c);
+	M.transpose();
+	M_inv = M.inverse();
+}
+
 V3 PPC::GetVD() {
 	V3 res = a ^ b;
 	res.normalize();
@@ -112,7 +118,7 @@ float PPC::GetPPu() {
 }
 
 float PPC::GetPPv() {
-	V3 b_c = a;
+	V3 b_c = b;
 	b_c.normalize();
 	float val = c * b_c / a.length();
 	return val * -1.0f;
@@ -136,6 +142,7 @@ void PPC::LoadTxt() {
 // save as txt file
 void PPC::SaveAsTxt() {
 	ofstream out(OUTPUT_TXT);
+	cout << a << b << C << hfovd;
 	out.write((char*)this, sizeof(PPC));
 	out.close();
 }

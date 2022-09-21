@@ -17,26 +17,26 @@ FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, 
 	h = _h;
 	pix = new unsigned int[w * h];
 
-	cam1 = PPC(_w, _h);
+	cam1 = PPC();
+	cam1.hfovd = 1.2;
 	cam1.a = V3(0.896052f, 0.0f, 0.443948f);
 	cam1.b = V3(0.336442f, -0.652437f, -0.679065f);
 	cam1.c = V3(-206.944f, 576.624f, -303.116f);
 	cam1.C = V3(-79.1066f, -278.926f, -8.77743f);
-	cam1.hfovd = 1.0472f;
 
-	cam2 = PPC(_w, _h);
+	cam2 = PPC();
 	cam2.a = V3(0.827187f, -0.0880683f, -0.554979f);
 	cam2.b = V3(-0.377751f, -0.818327f, -0.433174f);
 	cam2.c = V3(-404.614f, 539.377f, -112.066f);
 	cam2.C = V3(262.227f, -176.475f, 83.9435f);
 	cam2.hfovd = 1.0472f;
 
-	cam3 = PPC(_w, _h);
+	cam3 = PPC();
 	cam3.a = V3(0.511406f, -0.845631f, -0.15286f);
 	cam3.b = V3(-0.280801f, -0.33256f, 0.900304f);
 	cam3.c = V3(-546.404f, 119.016f, -393.033f);
 	cam3.C = V3(387.995f, 190.443f, -118.64f);
-	cam3.hfovd = 1.0472f;
+	cam3.hfovd = 0.9f;
 
 	transition1 = 0.0f;
 	transition2 = 0.0f;
@@ -46,16 +46,15 @@ void nextFrame(void* window) {
 	auto time_start = std::chrono::system_clock::now();
 	FrameBuffer* fb = (FrameBuffer*)window;
 
-	// change something
 	if (fb->transition1 < 1.0f) {
 		cout << "T1: " << fb->transition1 << '\n';
 		scene->ppc->interpolate(fb->cam1, fb->cam2, fb->transition1);
-		fb->transition1 += 0.01f;
+		fb->transition1 += 0.015f;
 	}
 	else if (fb->transition2 < 1.0f) {
 		cout << "T2: " << fb->transition2 << '\n';
 		scene->ppc->interpolate(fb->cam2, fb->cam3, fb->transition2);
-		fb->transition2 += 0.01f;
+		fb->transition2 += 0.015f;
 	}
 	else {
 		return;
@@ -63,20 +62,20 @@ void nextFrame(void* window) {
 	
 	fb->redraw();
 	auto time_end = std::chrono::system_clock::now();
-	float adjustment = (1.0 / FPS) - (time_end - time_start).count() * 1e-6;
+	float adjustment = (1.0 / FPS) - (time_end - time_start).count() * 1e-6f;
 	if (adjustment < 0) adjustment = 0;
 
 	Fl::repeat_timeout(adjustment, nextFrame, window);
 }
 
 void FrameBuffer::startThread() {
-	Fl::add_timeout(0.01, nextFrame, this);
+	Fl::add_timeout(1.0 / FPS, nextFrame, this);
 }
 
 void FrameBuffer::applyGeometry() {
 	compute = COMPUTED_GEOMETRY();
 	vector<float> z_index(w * h, FLT_MAX);
-	\
+
 	for (int i = 0; i < compute.num_segments; i++) {
 		SEGMENT& segment = compute.segments[i];
 		V3& start = segment.start.point;
@@ -305,11 +304,11 @@ void FrameBuffer::KeyboardHandle() {
 		}
 		// ZOOM
 		case '=': {
-			scene->ppc->zoom(-1.0f);
+			scene->ppc->zoom(-0.1f);
 			break;
 		}
 		case '-': {
-			scene->ppc->zoom(1.0f);
+			scene->ppc->zoom(0.1f);
 			break;
 		}
 	}

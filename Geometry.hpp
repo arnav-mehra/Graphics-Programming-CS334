@@ -1,14 +1,18 @@
 #pragma once
 
 #include <vector>
-
 #include "V3.hpp"
 
-#define SEG_CAPACITY 300
-#define SPH_CAPACITY 10000
-#define TRI_CAPACITY 100
-#define MESH_CAPACITY 10
-#define MESH_TRI_CAPACITY 100
+#define INPUT_BIN "geo.bin"
+#define OUTPUT_BIN "geo.bin"
+#define IO_MESH 0 // changes index of mesh in geometry that gets read/written and also rotated.
+
+// NOTE: Changing below parameters will mess up geometry file IO.
+#define SEG_CAPACITY 12000
+#define SPH_CAPACITY 100
+#define TRI_CAPACITY 10
+#define MESH_CAPACITY 4
+#define MESH_TRI_CAPACITY 1000
 
 typedef unsigned int U32;
 
@@ -68,6 +72,7 @@ class MESH {
 public:
 	// NOTE: EACH TRIANGLE HAS ITS VECTORS + COLOR CONTAINED.
 	TRIANGLE triangles[MESH_TRI_CAPACITY];
+	int edge_connectivity[MESH_TRI_CAPACITY][3];
 	int num_triangles = 0;
 	bool renderAsWireFrame = true;
 
@@ -75,12 +80,21 @@ public:
 	MESH(vector<TRIANGLE> tris);
 	MESH(vector<TRIANGLE> tris, bool renderAsWF);
 
+	void add_triangle(TRIANGLE tri);
+
 	V3 getCenter();
 	void translate(V3 tran);
+	void position(V3 pos);
 	void scale(float s);
-	void rotate(V3& axis_start, V3& axis_end, float alpha);
+	void rotate(V3 axis1, V3 axis2, float alpha);
 
-	void setAsBox();
+	bool cmp(V3& v1, V3& v2);
+
+	void setAsBox(V3 center, float radius);
+	void setAsSphere(V3 center, U32 resolution, float radius);
+
+	void SaveAsBin();
+	void LoadBin();
 };
 
 class GEOMETRY {

@@ -21,6 +21,8 @@ public:
     inline float& operator[](Dim dim);
     inline float& operator[](int i);
 
+    inline bool V3::operator==(V3& v2);
+
     // Print and write in vector values.
     friend ostream& operator<<(ostream& out, V3& vector);
     friend istream& operator>>(istream& in, V3& vector);
@@ -31,9 +33,9 @@ public:
     inline float magnitude();
 
     // Multiply and divide vector by scalar.
-    inline V3& operator*(float scalar);
+    inline V3 operator*(float scalar);
     inline void operator*=(float scalar);
-    inline V3& operator/(float scalar);
+    inline V3 operator/(float scalar);
     inline void operator/=(float scalar);
 
     // Normalize vector (scale magnitude to 1).
@@ -44,16 +46,16 @@ public:
     // Dot product with another vector.
     inline float operator*(V3& vector);
     // Cross product with another vector.
-    V3& operator^(V3& vector);
+    inline V3 operator^(V3& vector);
 
     // Add and subtract vectors.
-    inline V3& operator+(V3& vector);
+    inline V3 operator+(V3& vector);
     inline void operator+=(V3& vector);
-    inline V3& operator-(V3& vector);
+    inline V3 operator-(V3& vector);
     inline void operator-=(V3& vector);
 
     // Rotate point (this) about axis alpha radians
     inline void rotate(V3& axis1, V3& axis2, float alpha);
     // Rotate vector (this) about vector axis alpha radians
-    void rotate(V3 axis, float alpha);
+    inline void rotate(V3& axis, float alpha);
 };

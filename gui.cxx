@@ -18,6 +18,31 @@ void GUI::cb_SaveTxtButton(Fl_Button* o, void* v) {
     ((GUI*)(o->parent()->user_data()))->cb_SaveTxtButton_i(o, v);
 }
 
+void GUI::cb_LoadBinButton_i(Fl_Button*, void*) {
+    LoadBinButton_cb();
+}
+
+void GUI::cb_LoadBinButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LoadBinButton_i(o, v);
+}
+
+void GUI::cb_SaveBinButton_i(Fl_Button*, void*) {
+    SaveBinButton_cb();
+}
+
+void GUI::cb_SaveBinButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_SaveBinButton_i(o, v);
+}
+
+
+void GUI::cb_RotationButton_i(Fl_Button*, void*) {
+    RotationButton_cb();
+}
+
+void GUI::cb_RotationButton(Fl_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_RotationButton_i(o, v);
+}
+
 void GUI::cb_Play_i(Fl_Return_Button*, void*) {
     Play_cb();
 }
@@ -28,7 +53,7 @@ void GUI::cb_Play(Fl_Return_Button* o, void* v) {
 
 GUI::GUI() {
     {
-        uiw = new Fl_Double_Window(199, 197, "GUI");
+        uiw = new Fl_Double_Window(180, 405, "GUI");
         uiw->user_data((void*)(this));
         {
             Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Load Txt");
@@ -41,7 +66,22 @@ GUI::GUI() {
             o->callback((Fl_Callback*)cb_SaveTxtButton);
         } // Fl_Button* o
         {
-            Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Play");
+            Fl_Button* o = new Fl_Button(15, 145, 150, 50, "Load Bin");
+            o->selection_color(FL_DARK_RED);
+            o->callback((Fl_Callback*)cb_LoadBinButton);
+        } // Fl_Button* o
+        {
+            Fl_Button* o = new Fl_Button(15, 210, 150, 50, "Save Bin");
+            o->selection_color(FL_DARK_RED);
+            o->callback((Fl_Callback*)cb_SaveBinButton);
+        } // Fl_Button* o
+        {
+            Fl_Button* o = new Fl_Button(15, 275, 150, 50, "Rotate Mesh");
+            o->selection_color(FL_DARK_RED);
+            o->callback((Fl_Callback*)cb_RotationButton);
+        } // Fl_Button* o
+        {
+            Fl_Button* o = new Fl_Button(15, 340, 150, 50, "Play");
             o->callback((Fl_Callback*)cb_Play);
         } // Fl_Return_Button* o
         uiw->end();
@@ -63,6 +103,18 @@ void GUI::LoadTxtButton_cb() {
 
 void GUI::SaveTxtButton_cb() {
     scene->SaveTxtButton();
+}
+
+void GUI::LoadBinButton_cb() {
+    scene->LoadBinButton();
+}
+
+void GUI::SaveBinButton_cb() {
+    scene->SaveBinButton();
+}
+
+void GUI::RotationButton_cb() {
+    scene->RotationButton();
 }
 
 void GUI::Play_cb() {

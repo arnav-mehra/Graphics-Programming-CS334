@@ -13,7 +13,6 @@ class FrameBuffer : public Fl_Gl_Window {
 public:
 	unsigned int *pix; // pixel array
 	int w, h;
-	V3 *xyz;
 	COMPUTED_GEOMETRY compute;
 
 	PPC cam1;

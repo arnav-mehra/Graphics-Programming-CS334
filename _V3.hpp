@@ -1,10 +1,9 @@
 #pragma once
 
-#include "V3.hpp"
-
 #include <iostream>
 #include <cmath>
 
+#include "V3.hpp"
 #include "M33.hpp"
 
 using namespace std;
@@ -44,6 +43,12 @@ inline float& V3::operator[](int i) {
     return this->vector[i];
 }
 
+inline bool V3::operator==(V3& v2) {
+    return (*this)[Dim::X] == v2[Dim::X]
+        && (*this)[Dim::Y] == v2[Dim::Y]
+        && (*this)[Dim::Z] == v2[Dim::Z];
+}
+
 inline float V3::length() {
     const float selfDot =
         (*this)[Dim::X] * (*this)[Dim::X]
@@ -56,13 +61,12 @@ inline float V3::size() { return this->length(); }
 
 inline float V3::magnitude() { return this->length(); }
 
-inline V3& V3::operator*(float scalar) {
-    V3 result = V3(
+inline V3 V3::operator*(float scalar) {
+    return V3(
         (*this)[Dim::X] * scalar,
         (*this)[Dim::Y] * scalar,
         (*this)[Dim::Z] * scalar
     );
-    return result;
 }
 
 inline void V3::operator*=(float scalar) {
@@ -71,9 +75,8 @@ inline void V3::operator*=(float scalar) {
     (*this)[Dim::Z] *= scalar;
 }
 
-inline V3& V3::operator/(float scalar) {
-    V3 res = (*this) * (1.0f / scalar);
-    return res;
+inline V3 V3::operator/(float scalar) {
+    return (*this) * (1.0f / scalar);
 }
 
 inline void V3::operator/=(float scalar) {
@@ -111,7 +114,7 @@ inline float V3::operator*(V3& vector) {
         + (*this)[Dim::Z] * vector[Dim::Z];
 }
 
-V3& V3::operator^(V3& vector) {
+inline V3 V3::operator^(V3& vector) {
     V3 result = V3();
     result[Dim::X] =
         (*this)[Dim::Y] * vector[Dim::Z]
@@ -125,7 +128,7 @@ V3& V3::operator^(V3& vector) {
     return result;
 }
 
-inline V3& V3::operator+(V3& vector) {
+inline V3 V3::operator+(V3& vector) {
     V3 result = V3(
         (*this)[Dim::X] + vector[Dim::X],
         (*this)[Dim::Y] + vector[Dim::Y],
@@ -140,13 +143,12 @@ inline void V3::operator+=(V3& vector) {
     (*this)[Dim::Z] += vector[Dim::Z];
 }
 
-inline V3& V3::operator-(V3& vector) {
-    V3 result = V3(
+inline V3 V3::operator-(V3& vector) {
+    return V3(
         (*this)[Dim::X] - vector[Dim::X],
         (*this)[Dim::Y] - vector[Dim::Y],
         (*this)[Dim::Z] - vector[Dim::Z]
     );
-    return result;
 }
 
 inline void V3::operator-=(V3& vector) {
@@ -166,7 +168,7 @@ inline void V3::rotate(V3& axis1, V3& axis2, float alpha) {
     axis2 += axis1;
 }
 
-void V3::rotate(V3 axis, float alpha) {
+void V3::rotate(V3& axis, float alpha) {
     // xy rotation to eliminate axis y dimension
     float xy_len_inverse = 1 / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
     float xy_cos_theta = axis[0] * xy_len_inverse;

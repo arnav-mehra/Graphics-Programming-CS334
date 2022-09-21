@@ -29,19 +29,19 @@ public:
     inline V3& operator[](int i);
         
     // Matrix (this) and matrix, vector, and scalar multiplication
-    M33& operator*(M33& matrix);
-    V3& operator*(V3& vector);
+    M33 operator*(M33& matrix);
+    V3 operator*(V3& vector);
     void operator*=(float scalar);
-    M33& operator*(float scalar);
+    M33 operator*(float scalar);
     void operator/=(float scalar);
-    M33& operator/(float scalar);
+    M33 operator/(float scalar);
 
     // Transpose this matrx.
     // Note: transposition twice beats recreating matrix.
     void transpose();
         
     // Get inverse of matrix.
-    inline M33& inverse();
-    M33& inverse_iter(int max_iter);
-    inline V3& conjugate_grad(V3 &b, int maxiter);
+    inline M33 inverse();
+    M33 inverse_iter(int max_iter);
+    inline V3 conjugate_grad(V3 &b, int maxiter);
 };

@@ -1,14 +1,1 @@
-﻿  framebuffer.cpp
-C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(35,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
-C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(36,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
-C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(37,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(66,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(93,13): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(95,13): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(148,13): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(150,13): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(192,13): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(194,13): warning C4018: '>=': signed/unsigned mismatch
-     Creating library C:\Users\Arnav\Documents\GitHub\CS334\x64\Release\CS334.lib and object C:\Users\Arnav\Documents\GitHub\CS334\x64\Release\CS334.exp
-framebuffer.obj : error LNK2001: unresolved external symbol "public: void __cdecl V3::rotate(class V3 &,class V3 &,float)" (?rotate@V3@@QEAAXAEAV1@0M@Z)
-C:\Users\Arnav\Documents\GitHub\CS334\x64\Release\CS334.exe : fatal error LNK1120: 1 unresolved externals
+﻿  cs334.vcxproj -> C:\Users\mehra\Documents\GitHub\CS334\x64\Release\CS334.exe

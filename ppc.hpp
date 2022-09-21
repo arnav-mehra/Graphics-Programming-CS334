@@ -10,11 +10,9 @@ class PPC {
 public:
 	V3 a, b, c, C;
 	M33 M, M_inv;
-	int w, h;
 	float hfovd;
 
 	PPC();
-	PPC(int _w, int _h);
 	
 	bool Project(V3 P, V3& new_p);
 
@@ -24,13 +22,7 @@ public:
 	void translateFB(float v);
 	void zoom(float _hfovd);
 
-	void interpolate(PPC& cam1, PPC& cam2, float t) {
-		a = cam2.a * t + cam1.a * (1.0f - t);
-		b = cam2.b * t + cam1.b * (1.0f - t);
-		c = cam2.c * t + cam1.c * (1.0f - t);
-		C = cam2.C * t + cam1.C * (1.0f - t);
-		hfovd = cam2.hfovd * t + cam1.hfovd * (1.0f - t);
-	}
+	void interpolate(PPC& cam1, PPC& cam2, float t);
 
 	void reset();
 
@@ -38,4 +30,6 @@ public:
 	void SaveAsTxt();
 
 	V3 GetVD();
+	float GetPPu();
+	float GetPPv();
 };
