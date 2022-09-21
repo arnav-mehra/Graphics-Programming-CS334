@@ -4,7 +4,7 @@
 #include <FL/Fl_Gl_Window.H>
 #include <GL/glut.h>
 
-#include "ppc.h"
+#include "ppc.hpp"
 #include "V3.hpp"
 #include "Geometry.hpp"
 

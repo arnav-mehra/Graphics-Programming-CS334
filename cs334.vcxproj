@@ -76,16 +76,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framebuffer.h" />
+    <ClInclude Include="framebuffer.hpp" />
     <ClInclude Include="Geometry.hpp" />
-    <ClInclude Include="gui.h" />
+    <ClInclude Include="gui.hpp" />
     <ClInclude Include="M33.hpp" />
-    <ClInclude Include="ppc.h" />
-    <ClInclude Include="scene.h" />
+    <ClInclude Include="ppc.hpp" />
+    <ClInclude Include="scene.hpp" />
     <ClInclude Include="V3.hpp" />
     <ClInclude Include="_Geometry.hpp" />
     <ClInclude Include="_M33.hpp" />
-    <ClInclude Include="_ppc.h" />
+    <ClInclude Include="_ppc.hpp" />
     <ClInclude Include="_V3.hpp" />
   </ItemGroup>
   <ItemGroup>

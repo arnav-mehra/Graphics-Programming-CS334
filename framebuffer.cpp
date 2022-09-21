@@ -5,7 +5,7 @@
 #include <chrono>
 #include <cmath>
 
-#include "framebuffer.h"
+#include "framebuffer.hpp"
 #include "_Geometry.hpp"
 
 #define max3(x, y, z) (max(max((x), (y)), (z)))
@@ -75,7 +75,6 @@ void FrameBuffer::startThread() {
 
 void FrameBuffer::applyGeometry() {
 	compute = COMPUTED_GEOMETRY();
-	cout << "APPLYING!\n";
 	vector<float> z_index(w * h, FLT_MAX);
 	\
 	for (int i = 0; i < compute.num_segments; i++) {

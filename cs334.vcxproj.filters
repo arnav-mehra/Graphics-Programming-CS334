@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framebuffer.h">
+    <ClInclude Include="framebuffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scene.h">
+    <ClInclude Include="scene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gui.h">
+    <ClInclude Include="gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="_M33.hpp">
@@ -42,10 +42,10 @@
     <ClInclude Include="_Geometry.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ppc.h">
+    <ClInclude Include="ppc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="_ppc.h">
+    <ClInclude Include="_ppc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

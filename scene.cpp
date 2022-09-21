@@ -1,9 +1,9 @@
 #include "Dimension.hpp"
-#include "scene.h"
+#include "scene.hpp"
 
 #include "_V3.hpp"
 #include "_M33.hpp"
-#include "_ppc.h"
+#include "_ppc.hpp"
 
 using namespace std;
 

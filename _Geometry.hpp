@@ -6,8 +6,9 @@
 #include <algorithm>
 
 #include "Dimension.hpp"
+#include "V3.hpp"
 #include "M33.hpp"
-#include "scene.h"
+#include "scene.hpp"
 
 COLOR::COLOR() {}
 
@@ -135,10 +136,11 @@ void MESH::scale(float s) {
 	}
 }
 
-void MESH::rotate(V3 axis_start, V3 axis_end, float alpha) {
+void MESH::rotate(V3& axis_start, V3& axis_end, float alpha) {
 	for (int i = 0; i < num_triangles; i++) {
 		for (SPHERE& p : triangles[i].points) {
-			p.point.rotate(axis_start, axis_end, alpha);
+			V3& cpy = p.point;
+			cpy.rotate(axis_start, axis_end, alpha);
 		}
 	}
 }

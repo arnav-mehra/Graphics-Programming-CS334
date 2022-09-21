@@ -1,1 +1,29 @@
-﻿  cs334.vcxproj -> C:\Users\Arnav\Documents\GitHub\CS334\x64\Debug\CS334.exe
+﻿  framebuffer.cpp
+C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(36,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
+C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(37,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
+C:\Users\Arnav\Documents\GitHub\CS334\_Geometry.hpp(38,8): warning C4244: 'initializing': conversion from 'float' to 'U32', possible loss of data
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(66,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(93,13): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(95,13): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(148,13): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(150,13): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(192,13): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Arnav\Documents\GitHub\CS334\framebuffer.cpp(194,13): warning C4018: '>=': signed/unsigned mismatch
+  gui.cxx
+  scene.cpp
+  Generating Code...
+C:\Users\Arnav\Documents\GitHub\CS334\_V3.hpp(125): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(111): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(119): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(134): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(161): warning C4172: returning address of local variable or temporary: inverse
+C:\Users\Arnav\Documents\GitHub\CS334\_V3.hpp(65): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(201): warning C4172: returning address of local variable or temporary: inverse
+C:\Users\Arnav\Documents\GitHub\CS334\_V3.hpp(149): warning C4172: returning address of local variable or temporary: result
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(182): warning C4172: returning address of local variable or temporary: x
+C:\Users\Arnav\Documents\GitHub\CS334\_M33.hpp(189): warning C4172: returning address of local variable or temporary: x
+C:\Users\Arnav\Documents\GitHub\CS334\_V3.hpp(134): warning C4172: returning address of local variable or temporary: result
+     Creating library C:\Users\Arnav\Documents\GitHub\CS334\x64\Debug\CS334.lib and object C:\Users\Arnav\Documents\GitHub\CS334\x64\Debug\CS334.exp
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+framebuffer.obj : error LNK2019: unresolved external symbol "public: void __cdecl V3::rotate(class V3,class V3,float)" (?rotate@V3@@QEAAXV1@0M@Z) referenced in function "public: void __cdecl MESH::rotate(class V3 &,class V3 &,float)" (?rotate@MESH@@QEAAXAEAVV3@@0M@Z)
+C:\Users\Arnav\Documents\GitHub\CS334\x64\Debug\CS334.exe : fatal error LNK1120: 1 unresolved externals

@@ -3,9 +3,9 @@
 #include "V3.hpp"
 #include "M33.hpp"
 #include "Geometry.hpp"
-#include "framebuffer.h"
-#include "gui.h"
-#include "ppc.h"
+#include "framebuffer.hpp"
+#include "gui.hpp"
+#include "ppc.hpp"
 
 #define FPS 1.0f
 #define TIFF_FILE_IN "name.tif" // what we read from
