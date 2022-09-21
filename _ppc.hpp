@@ -75,11 +75,9 @@ void PPC::zoom(float hfovd_inc) {
 	hfovd = max(DEG_TO_RAD(10.0f), hfovd);
 	hfovd = min(DEG_TO_RAD(360.0f), hfovd);
 
-	c = V3(
-		(float)-w * 0.5f,
-		(float)h * 0.5f,
-		(float)-w * 0.5f / tan(hfovd * 0.5f)
-	);
+	V3 vd = GetVD();
+	
+	c = a * GetPPu() - b * GetPPv() + vd * hfovd;
 
 	M = M33(a, b, c);
 	M.transpose();
@@ -104,6 +102,20 @@ V3 PPC::GetVD() {
 	V3 res = a ^ b;
 	res.normalize();
 	return res;
+}
+
+float PPC::GetPPu() {
+	V3 a_c = a;
+	a_c.normalize();
+	float val = c * a_c / a.length();
+	return val * -1.0f;
+}
+
+float PPC::GetPPv() {
+	V3 b_c = a;
+	b_c.normalize();
+	float val = c * b_c / a.length();
+	return val * -1.0f;
 }
 
 // load a txt file
