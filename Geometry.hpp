@@ -28,6 +28,7 @@ public:
 	COLOR();
 	COLOR(U32 v);
 	COLOR(U32 r, U32 g, U32 b);
+	
 	inline COLOR operator*(const float c);
 	inline void operator*=(const float c);
 	inline COLOR operator+(const COLOR& color);
@@ -49,6 +50,11 @@ public:
 	SPHERE(V3 point, COLOR color, U32 width);	
 };
 
+class INTERPOLATE {
+	static inline COLOR getColor(SPHERE& s1, SPHERE& s2, V3& pos);
+	static inline COLOR getColor(SPHERE& s1, SPHERE& s2, SPHERE& s3, V3& pos);
+};
+
 class SEGMENT : public GEO_META {
 public:
 	SPHERE start;
@@ -62,10 +68,12 @@ public:
 class TRIANGLE : public GEO_META {
 public:
 	SPHERE points[3];
+	bool isFilled;
 
 	TRIANGLE();
 	TRIANGLE(vector<SPHERE> points);
-	TRIANGLE(vector<SPHERE> points, U32 width);
+	TRIANGLE(vector<SPHERE> points, bool isFilled);
+	TRIANGLE(vector<SPHERE> points, bool isFilled, U32 width);
 };
 
 class MESH {
@@ -83,15 +91,16 @@ public:
 	void add_triangle(TRIANGLE tri);
 
 	V3 getCenter();
+	float avgDistFromCenter();
+	void sphericalInterpolation(float t);
 	void translate(V3 tran);
 	void position(V3 pos);
 	void scale(float s);
 	void rotate(V3 axis1, V3 axis2, float alpha);
 
-	bool cmp(V3& v1, V3& v2);
-
 	void setAsBox(V3 center, float radius);
 	void setAsSphere(V3 center, U32 resolution, float radius);
+	void setAsCylinder(V3 center, U32 res, float height, float radius);
 
 	void SaveAsBin();
 	void LoadBin();

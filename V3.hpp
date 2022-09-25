@@ -21,7 +21,8 @@ public:
     inline float& operator[](Dim dim);
     inline float& operator[](int i);
 
-    inline bool V3::operator==(V3& v2);
+    // Comparison
+    friend inline bool V3::operator==(V3& v1, V3& v2);
 
     // Print and write in vector values.
     friend ostream& operator<<(ostream& out, V3& vector);

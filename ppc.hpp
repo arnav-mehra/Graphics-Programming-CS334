@@ -32,4 +32,5 @@ public:
 	V3 GetVD();
 	float GetPPu();
 	float GetPPv();
+	void updateHfov();
 };

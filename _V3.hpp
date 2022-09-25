@@ -43,10 +43,10 @@ inline float& V3::operator[](int i) {
     return this->vector[i];
 }
 
-inline bool V3::operator==(V3& v2) {
-    return (*this)[Dim::X] == v2[Dim::X]
-        && (*this)[Dim::Y] == v2[Dim::Y]
-        && (*this)[Dim::Z] == v2[Dim::Z];
+inline bool operator==(V3& v1, V3& v2) {
+    return v1[Dim::X] == v2[Dim::X]
+        && v1[Dim::Y] == v2[Dim::Y]
+        && v2[Dim::Z] == v2[Dim::Z];
 }
 
 inline float V3::length() {

@@ -54,17 +54,13 @@ void PPC::translateFB(float v) {
 	C += delta;
 }
 
-void PPC::zoom(float hfovd_inc) {
-	hfovd += DEG_TO_RAD(hfovd_inc);
-
+void PPC::zoom(float inc) {
 	V3 vd = GetVD();
-	
-	// c = a * GetPPu() - b * GetPPv() + vd * hfovd;
-	c = V3(
-		(float)-scene->w * 0.5f,
-		(float)scene->h * 0.5f,
-		(float)-scene->w * 0.5f / tan(hfovd * 0.5f)
-	);
+
+	float f = vd * c;
+	f *= inc;
+	hfovd = 2 * atan(scene->w / (2.0f * a.length() / f));	
+	c = a * (-GetPPu()) - b * GetPPv() + vd * f;
 
 	M = M33(a, b, c);
 	M.transpose();
@@ -86,19 +82,11 @@ bool PPC::Project(V3 P, V3& new_p) {
 }
 
 void PPC::interpolate(PPC& cam1, PPC& cam2, float t) {
+	t *= t;
 	C = cam2.C * t + cam1.C * (1.0f - t);
-
 	a = cam2.a * t + cam1.a * (1.0f - t);
-
 	b = cam2.b * t + cam1.b * (1.0f - t);
-
 	c = cam2.c * t + cam1.c * (1.0f - t);
-	b.normalize();
-
-	hfovd = cam2.hfovd * t + cam1.hfovd * (1.0f - t);
-	//V3 vd = GetVD();
-	//c = a * GetPPu() - b * GetPPv() + vd * hfovd;
-
 	M = M33(a, b, c);
 	M.transpose();
 	M_inv = M.inverse();
@@ -120,29 +108,24 @@ float PPC::GetPPu() {
 float PPC::GetPPv() {
 	V3 b_c = b;
 	b_c.normalize();
-	float val = c * b_c / a.length();
+	float val = c * b_c / b.length();
 	return val * -1.0f;
+}
+
+void PPC::updateHfov() {
+	
 }
 
 // load a txt file
 void PPC::LoadTxt() {
 	ifstream in(INPUT_TXT);
-	PPC copy;
-	in.read((char*)&copy, sizeof(PPC));
-	a = copy.a;
-	b = copy.b;
-	c = copy.c;
-	C = copy.C;
-	hfovd = copy.hfovd;
-	// dont copy w & h, they are scene properties.	
-	
+	in.read((char*) this, sizeof(PPC));
 	in.close();
 }
 
 // save as txt file
 void PPC::SaveAsTxt() {
 	ofstream out(OUTPUT_TXT);
-	cout << a << b << C << hfovd;
 	out.write((char*)this, sizeof(PPC));
 	out.close();
 }

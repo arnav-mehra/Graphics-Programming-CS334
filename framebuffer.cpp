@@ -12,13 +12,13 @@
 #define min3(x, y, z) (min(min((x), (y)), (z)))
 using namespace std;
 
-FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
+FrameBuffer::FrameBuffer(int u0, int v0, U32 _w, U32 _h) : Fl_Gl_Window(u0, v0, (int) _w, (int) _h, 0) {
 	w = _w;
 	h = _h;
 	pix = new unsigned int[w * h];
 
 	cam1 = PPC();
-	cam1.hfovd = 1.2;
+	cam1.hfovd = 1.0472f;
 	cam1.a = V3(0.896052f, 0.0f, 0.443948f);
 	cam1.b = V3(0.336442f, -0.652437f, -0.679065f);
 	cam1.c = V3(-206.944f, 576.624f, -303.116f);
@@ -36,7 +36,7 @@ FrameBuffer::FrameBuffer(int u0, int v0, int _w, int _h) : Fl_Gl_Window(u0, v0, 
 	cam3.b = V3(-0.280801f, -0.33256f, 0.900304f);
 	cam3.c = V3(-546.404f, 119.016f, -393.033f);
 	cam3.C = V3(387.995f, 190.443f, -118.64f);
-	cam3.hfovd = 0.9f;
+	cam3.hfovd = 1.0472f;
 
 	transition1 = 0.0f;
 	transition2 = 0.0f;
@@ -46,30 +46,40 @@ void nextFrame(void* window) {
 	auto time_start = std::chrono::system_clock::now();
 	FrameBuffer* fb = (FrameBuffer*)window;
 
-	if (fb->transition1 < 1.0f) {
-		cout << "T1: " << fb->transition1 << '\n';
-		scene->ppc->interpolate(fb->cam1, fb->cam2, fb->transition1);
-		fb->transition1 += 0.015f;
-	}
-	else if (fb->transition2 < 1.0f) {
-		cout << "T2: " << fb->transition2 << '\n';
-		scene->ppc->interpolate(fb->cam2, fb->cam3, fb->transition2);
-		fb->transition2 += 0.015f;
+	if (false) {
+		if (fb->transition1 < 1.0f) {
+			cout << "T1: " << fb->transition1 << '\n';
+			scene->ppc->interpolate(fb->cam1, fb->cam2, fb->transition1);
+			fb->transition1 += 0.015f;
+		}
+		else if (fb->transition2 < 1.0f) {
+			cout << "T2: " << fb->transition2 << '\n';
+			scene->ppc->interpolate(fb->cam2, fb->cam3, fb->transition2);
+			fb->transition2 += 0.015f;
+		}
+		else {
+			return;
+		}
 	}
 	else {
-		return;
+		if (fb->transition1 < 1.0f) {
+			scene->geometry.meshes[0].sphericalInterpolation(fb->transition1);
+			fb->transition1 += 0.015f;
+		}
 	}
 	
 	fb->redraw();
 	auto time_end = std::chrono::system_clock::now();
-	float adjustment = (1.0 / FPS) - (time_end - time_start).count() * 1e-6f;
-	if (adjustment < 0) adjustment = 0;
+	float adjustment = (1.0f / FPS) - (time_end - time_start).count() * 1e-6f;
+	if (adjustment < 0.0f) adjustment = 0.0f;
 
 	Fl::repeat_timeout(adjustment, nextFrame, window);
 }
 
 void FrameBuffer::startThread() {
-	Fl::add_timeout(1.0 / FPS, nextFrame, this);
+	transition1 = 0.0f;
+	transition2 = 0.0f;
+	Fl::add_timeout(1.0f / FPS, nextFrame, this);
 }
 
 void FrameBuffer::applyGeometry() {
@@ -304,11 +314,11 @@ void FrameBuffer::KeyboardHandle() {
 		}
 		// ZOOM
 		case '=': {
-			scene->ppc->zoom(-0.1f);
+			scene->ppc->zoom(1.1f);
 			break;
 		}
 		case '-': {
-			scene->ppc->zoom(0.1f);
+			scene->ppc->zoom(0.9f);
 			break;
 		}
 	}

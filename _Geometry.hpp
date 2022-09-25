@@ -51,6 +51,23 @@ inline COLOR COLOR::interpolate(COLOR& color, float v) {
 	return (*this) * (1.0f - v) + (color) * (v);
 }
 
+COLOR INTERPOLATE::getColor(SPHERE& s1, SPHERE& s2, V3& pos) {
+	float d1 = (pos - s1.point).length();
+	float d2 = (pos - s2.point).length();
+	float d_ = 1.0f / (d1 + d2);
+	COLOR res = s1.color * (d_ * d1) + s2.color * (d_ * d2);
+	return res;
+}
+
+COLOR INTERPOLATE::getColor(SPHERE& s1, SPHERE& s2, SPHERE& s3, V3& pos) {
+	float d1 = (pos - s1.point).length();
+	float d2 = (pos - s2.point).length();
+	float d3 = (pos - s3.point).length();
+	float d_ = 1.0f / (d1 + d2 + d3);
+	COLOR res = s1.color * (d_ * d1) + s2.color * (d_ * d2) + s3.color * (d_ * d3);
+	return res;
+}
+
 SPHERE::SPHERE() {}
 
 SPHERE::SPHERE(V3 point) {
@@ -89,7 +106,11 @@ TRIANGLE::TRIANGLE(vector<SPHERE> points) {
 	this->width = 8;
 }
 
-TRIANGLE::TRIANGLE(vector<SPHERE> points, U32 width) : TRIANGLE(points) {
+TRIANGLE::TRIANGLE(vector<SPHERE> points, bool isFilled) : TRIANGLE(points) {
+	this->isFilled = isFilled;
+}
+
+TRIANGLE::TRIANGLE(vector<SPHERE> points, bool isFilled, U32 width) : TRIANGLE(points, isFilled) {
 	this->width = width;
 }
 
@@ -119,7 +140,7 @@ void MESH::add_triangle(TRIANGLE tri) {
 	for (int i = 0; i < num_triangles; i++) {
 		V3& t1 = triangles[i].points[0].point;
 		V3& t2 = triangles[i].points[1].point;
-		if ((cmp(p1, t1) || cmp(p1, t2)) && (cmp(p2, t1) || cmp(p2, t2))) {
+		if ((p1 == t1 || p1 == t2) && (p2 == t1 || p2 == t2)) {
 			edge_connectivity[num_triangles][0] = i;
 			break;
 		}
@@ -127,7 +148,7 @@ void MESH::add_triangle(TRIANGLE tri) {
 	for (int i = 0; i < num_triangles; i++) {
 		V3& t2 = triangles[i].points[1].point;
 		V3& t3 = triangles[i].points[2].point;
-		if ((cmp(p2, t2) || cmp(p2, t3)) && (cmp(p3, t2) || cmp(p3, t3))) {
+		if ((p2 == t2 || p2 == t3) && (p3 == t2 || p3 == t3)) {
 			edge_connectivity[num_triangles][1] = i;
 			break;
 		}
@@ -135,7 +156,7 @@ void MESH::add_triangle(TRIANGLE tri) {
 	for (int i = 0; i < num_triangles; i++) {
 		V3& t1 = triangles[i].points[0].point;
 		V3& t3 = triangles[i].points[2].point;
-		if ((cmp(p3, t3) || cmp(p3, t1)) && (cmp(p1, t3) || cmp(p1, t1))) {
+		if ((p3 == t3 || p3 == t1) && (p1 == t3 || p1 == t1)) {
 			edge_connectivity[num_triangles][2] = i;
 			break;
 		}
@@ -181,11 +202,8 @@ void MESH::scale(float s) {
 	}
 }
 
-void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
-	axis2 -= axis1;
-	V3 axis = axis2;
-	// rotate about new axis vector (axis 2)
-	// xy rotation to eliminate axis y dimension
+void MESH::rotate(V3 axis1, V3 axis, float alpha) {
+	axis -= axis1;
 	float xy_len_inverse = 1 / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
 	float xy_cos_theta = axis[0] * xy_len_inverse;
 	float xy_sin_theta = axis[1] * xy_len_inverse;
@@ -195,9 +213,8 @@ void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
 		xy_rotation = M33(1);
 		xy_rotation_inv = M33(1);
 	}
-	// perform xy rotation
 	axis = xy_rotation * axis;
-	// xz rotation to eliminate axis z dimension
+
 	float xz_len_inverse = 1 / sqrt(axis[0] * axis[0] + axis[2] * axis[2]);
 	float xz_cos_theta = axis[0] * xz_len_inverse;
 	float xz_sin_theta = axis[2] * xz_len_inverse;
@@ -214,14 +231,9 @@ void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
 	total_rotation = xz_rotation_inv * total_rotation;
 	total_rotation = xy_rotation_inv * total_rotation;
 
-
 	for (int i = 0; i < num_triangles; i++) {
 		for (SPHERE& p : triangles[i].points) {
 			V3& v = p.point;
-
-			// CAUSING LINKING ISSUES ?!?!
-			// v.rotate(axis_start, axis_end, alpha);
-						
 			v -= axis1;
 			v = total_rotation * v;
 			v += axis1;
@@ -229,8 +241,32 @@ void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
 	}
 }
 
-bool MESH::cmp(V3& v1, V3& v2) {
-	return v1[Dim::X] == v2[Dim::X] && v1[Dim::Y] == v2[Dim::Y] && v1[Dim::Z] == v2[Dim::Z];
+float MESH::avgDistFromCenter() {
+	V3 c = getCenter();
+	float total_dist = 0.0f;
+	if (num_triangles == 0) return total_dist;
+	for (int i = 0; i < num_triangles; i++) {
+		for (SPHERE& p : triangles[i].points) {
+			V3& v = p.point;
+			V3 delta = v - c;
+			total_dist += delta.length();
+		}
+	}
+	return total_dist / (float) num_triangles;
+}
+
+void MESH::sphericalInterpolation(float t) {
+	float avg_dist = avgDistFromCenter();
+	V3 c = getCenter();
+	for (int i = 0; i < num_triangles; i++) {
+		for (SPHERE& p : triangles[i].points) {
+			V3& v = p.point;
+			V3 delta = v - c;
+			float dist = (delta.length() - avg_dist) * t;
+			delta.normalize();
+			v -= delta * dist;
+		}
+	}
 }
 
 void MESH::setAsBox(V3 center, float radius) {
@@ -306,6 +342,43 @@ void MESH::setAsSphere(V3 center, U32 hres, float radius) {
 	}
 	position(center);
 	scale(radius);
+}
+
+void MESH::setAsCylinder(V3 center, U32 res, float height, float rad) {
+	num_triangles = 0;
+	res = min(res, 200U);
+
+	float rad_inc = rad / (float) res;
+	float alpha = 2.0f * (float)PI / (float)res;
+	M33 rot = M33(Dim::Y, alpha);
+
+	vector<SPHERE> upper_vecs(res);
+	vector<SPHERE> lower_vecs(res);
+	V3 vec = V3(rad, 0.0, 0.0);
+	for (int theta = 0; theta < res; theta++) {
+		V3 upper = vec;
+		V3 lower = vec;
+		upper[Dim::Y] += height * 0.5f;
+		lower[Dim::Y] -= height * 0.5f;
+		upper_vecs[theta] = SPHERE(upper);
+		lower_vecs[theta] = SPHERE(lower);
+		vec = rot * vec;
+	}
+
+	V3 upper_center = V3(0.0f, height * 0.5f, 0.0f);
+	V3 lower_center = V3(0.0f, height * -0.5f, 0.0f);
+	for (int a = 0; a < res; a++) {
+		int i = (a + 1) % res;
+		SPHERE& v1 = lower_vecs[a];
+		SPHERE& v2 = lower_vecs[i];
+		SPHERE& v3 = upper_vecs[a];
+		SPHERE& v4 = upper_vecs[i];
+		add_triangle(TRIANGLE({ v1, v2, v4 }));
+		add_triangle(TRIANGLE({ v1, v3, v4 }));
+		add_triangle(TRIANGLE({ v3, v4, upper_center }));
+		add_triangle(TRIANGLE({ v1, v2, lower_center }));
+	}
+	position(center);
 }
 
 // load a txt file
@@ -461,26 +534,31 @@ inline void COMPUTED_GEOMETRY::add_triangle(TRIANGLE& tri) {
 }
 
 inline void COMPUTED_GEOMETRY::add_mesh(MESH& mesh) {
-	if (mesh.renderAsWireFrame) {
+	if (!mesh.renderAsWireFrame) {
 		for (int i = 0; i < mesh.num_triangles; i++) {
-			TRIANGLE& tri = mesh.triangles[i];
-			SPHERE p1, p2, p3;
+			add_triangle(mesh.triangles[i]);
+		}
+		return;
+	}
+	
+	for (int i = 0; i < mesh.num_triangles; i++) {
+		TRIANGLE& tri = mesh.triangles[i];
+		SPHERE p1, p2, p3;
 			
-			if (transform(tri.points[0].point, p1.point) &&
-				transform(tri.points[1].point, p2.point) &&
-				transform(tri.points[2].point, p3.point)) {
+		if (transform(tri.points[0].point, p1.point) &&
+			transform(tri.points[1].point, p2.point) &&
+			transform(tri.points[2].point, p3.point)) {
 
-				p1.color = tri.points[0].color;
-				p2.color = tri.points[1].color;
-				p3.color = tri.points[2].color;
+			p1.color = tri.points[0].color;
+			p2.color = tri.points[1].color;
+			p3.color = tri.points[2].color;
 				
-				if (mesh.edge_connectivity[i][0] == -1)
-					segments[num_segments++] = SEGMENT(p1, p2);
-				if (mesh.edge_connectivity[i][1] == -1)
-					segments[num_segments++] = SEGMENT(p2, p3);
-				if (mesh.edge_connectivity[i][2] == -1)
-					segments[num_segments++] = SEGMENT(p3, p1);
-			}
+			if (mesh.edge_connectivity[i][0] == -1)
+				segments[num_segments++] = SEGMENT(p1, p2);
+			if (mesh.edge_connectivity[i][1] == -1)
+				segments[num_segments++] = SEGMENT(p2, p3);
+			if (mesh.edge_connectivity[i][2] == -1)
+				segments[num_segments++] = SEGMENT(p3, p1);
 		}
 	}
 }

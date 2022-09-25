@@ -20,11 +20,11 @@ Scene::Scene() {
 	ppc = new PPC();
 
 	// ADDS BOX
-	{
+	/*{
 		MESH m;
 		m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
 		geometry.add_mesh(m);
-	}
+	}*/
 
 	// SPHERE WIRE FRAME
 	//{
@@ -32,6 +32,13 @@ Scene::Scene() {
 	//	m.setAsSphere(V3(0.0f, 0.0f, -1000.0f), 20U, 200.0f);
 	//	geometry.add_mesh(m);
 	//}
+
+	// SPHERE WIRE FRAME
+	{
+		MESH m;
+		m.setAsCylinder(V3(0.0f, 0.0f, -500.0f), 20U, 200.0f, 100.0f);
+		geometry.add_mesh(m);
+	}
 
 	rotation_axis1 = V3(0.0f, -1.0f, -1.0f);
 	rotation_axis2 = V3(0.0f, 1.0f, 1.0f);

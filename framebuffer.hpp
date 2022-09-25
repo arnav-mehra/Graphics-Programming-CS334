@@ -12,7 +12,7 @@
 class FrameBuffer : public Fl_Gl_Window {
 public:
 	unsigned int *pix; // pixel array
-	int w, h;
+	U32 w, h;
 	COMPUTED_GEOMETRY compute;
 
 	PPC cam1;
@@ -21,7 +21,7 @@ public:
 	float transition1;
 	float transition2;
 
-	FrameBuffer(int u0, int v0, int _w, int _h);
+	FrameBuffer(int u0, int v0, U32 _w, U32 _h);
 
 	void draw();
 	void KeyboardHandle();

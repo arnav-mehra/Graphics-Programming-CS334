@@ -1,1 +1,13 @@
-﻿  cs334.vcxproj -> C:\Users\mehra\Documents\GitHub\CS334\x64\Release\CS334.exe
+﻿  framebuffer.cpp
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(321,28): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(322,25): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(331,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(332,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(358,28): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\_Geometry.hpp(370,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mehra\Documents\GitHub\CS334\framebuffer.cpp(329,22): warning C4018: '<': signed/unsigned mismatch
+  gui.cxx
+  scene.cpp
+     Creating library C:\Users\mehra\Documents\GitHub\CS334\x64\Release\CS334.lib and object C:\Users\mehra\Documents\GitHub\CS334\x64\Release\CS334.exp
+framebuffer.obj : error LNK2001: unresolved external symbol "bool __cdecl operator==(class V3 &,class V3 &)" (??8@YA_NAEAVV3@@0@Z)
+C:\Users\mehra\Documents\GitHub\CS334\x64\Release\CS334.exe : fatal error LNK1120: 1 unresolved externals
