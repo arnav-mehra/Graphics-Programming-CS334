@@ -5,9 +5,7 @@
 #include <GL/glut.h>
 
 #include "ppc.hpp"
-#include "V3.hpp"
 #include "Geometry.hpp"
-
 
 class FrameBuffer : public Fl_Gl_Window {
 public:
@@ -27,7 +25,12 @@ public:
 	void KeyboardHandle();
 	int handle(int guievent);
 	void SetBGR(unsigned int bgr);
+	
 	void applyGeometry();
+	inline void applySphere(SPHERE& sphere, vector<float>& z_index);
+	inline void applySegment(SEGMENT& seg, vector<float>& z_index);
+	inline void applyTriangle(TRIANGLE& tri, vector<float>& z_index);
+
 	void startThread();
 
 	void LoadTiff();

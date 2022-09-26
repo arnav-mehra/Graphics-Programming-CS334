@@ -20,7 +20,7 @@ INSTRUCTIONS:
 			- NOTE: Color interpolation is found in "Framebuffer"'s "applyGeometry".
 		2. Test Bin IO:
 			- Modify "INPUT_BIN" and "OUTPUT_BIN" in "Geometry.hpp" to control files written to/read from.
-			- (WARNING) You can modify "IO_MESH" to control mesh we save, write over, and rotate, but keep the index in out of bounds.
+			- (WARNING) You can modify "SEL_MESH" to control mesh we save, write over, and rotate, but keep the index in out of bounds.
 			- Save MESH to .bin by clicking "Load Bin" and "Save Bin" buttons in GUI.
 		3. Run application to view meshes, change between 
 		4. Click "Rotate Mesh" to see mesh rotate about axis defined by rotation_axis1 and rotation_axis2 (starting and end points of rotation line segment).

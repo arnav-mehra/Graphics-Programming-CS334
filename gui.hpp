@@ -11,18 +11,35 @@ public:
 	GUI();
 	Fl_Double_Window *uiw;
 private:
-	inline void cb_LoadTxtButton_i(Fl_Button*, void*);
+	void cb_LoadTxtButton_i(Fl_Button*, void*);
 	static void cb_LoadTxtButton(Fl_Button*, void*);
-	inline void cb_SaveTxtButton_i(Fl_Button*, void*);
+	void cb_SaveTxtButton_i(Fl_Button*, void*);
 	static void cb_SaveTxtButton(Fl_Button*, void*);
-	inline void cb_LoadBinButton_i(Fl_Button*, void*);
+
+	void cb_LoadBinButton_i(Fl_Button*, void*);
 	static void cb_LoadBinButton(Fl_Button*, void*);
-	inline void cb_SaveBinButton_i(Fl_Button*, void*);
+	void cb_SaveBinButton_i(Fl_Button*, void*);
 	static void cb_SaveBinButton(Fl_Button*, void*);
-	inline void cb_RotationButton_i(Fl_Button*, void*);
+
+	void cb_RotationButton_i(Fl_Button*, void*);
 	static void cb_RotationButton(Fl_Button*, void*);
-	inline void cb_Play_i(Fl_Return_Button*, void*);
+
+	void cb_Play_i(Fl_Return_Button*, void*);
 	static void cb_Play(Fl_Return_Button*, void*);
+
+	void cb_LightLeftButton_i(Fl_Return_Button*, void*);
+	static void cb_LightLeftButton(Fl_Return_Button*, void*);
+	void cb_LightRightButton_i(Fl_Return_Button*, void*);
+	static void cb_LightRightButton(Fl_Return_Button*, void*);
+	void cb_LightUpButton_i(Fl_Return_Button*, void*);
+	static void cb_LightUpButton(Fl_Return_Button*, void*);
+	void cb_LightDownButton_i(Fl_Return_Button*, void*);
+	static void cb_LightDownButton(Fl_Return_Button*, void*);
+	void cb_LightFrontButton_i(Fl_Return_Button*, void*);
+	static void cb_LightFrontButton(Fl_Return_Button*, void*);
+	void cb_LightBackButton_i(Fl_Return_Button*, void*);
+	static void cb_LightBackButton(Fl_Return_Button*, void*);
+
 public:
 	void show();
 	void LoadTxtButton_cb();
@@ -30,5 +47,13 @@ public:
 	void LoadBinButton_cb();
 	void SaveBinButton_cb();
 	void RotationButton_cb();
+
 	void Play_cb();
+
+	void LightLeftButton_cb();
+	void LightRightButton_cb();
+	void LightUpButton_cb();
+	void LightDownButton_cb();
+	void LightFrontButton_cb();
+	void LightBackButton_cb();
 };

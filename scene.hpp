@@ -1,11 +1,9 @@
 #pragma once
-#include "V3.hpp"
-#include "M33.hpp"
-#include "Geometry.hpp"
 
-#include "framebuffer.hpp"
 #include "gui.hpp"
-#include "ppc.hpp"
+#include "V3.hpp"
+#include "framebuffer.hpp"
+#include "Geometry.hpp"
 
 #define FPS 10.0f
 #define TIFF_FILE_IN "name.tif" // what we read from
@@ -17,7 +15,7 @@ public:
 	FrameBuffer* fb;
 	PPC* ppc;
 
-	int w, h;
+	U32 w, h;
 
 	GEOMETRY geometry;
 
@@ -25,12 +23,22 @@ public:
 	V3 rotation_axis2;
 
 	Scene();
+
 	void LoadTxtButton();
 	void SaveTxtButton();
+
 	void LoadBinButton();
 	void SaveBinButton();
+	
 	void RotationButton();
 	void TransitionCamera();
+
+	void LightLeft();
+	void LightRight();
+	void LightUp();
+	void LightDown();
+	void LightFront();
+	void LightBack();
 };
 
 extern Scene *scene;

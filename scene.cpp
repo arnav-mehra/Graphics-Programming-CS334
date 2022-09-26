@@ -1,9 +1,6 @@
-#include "Dimension.hpp"
+#include "gui.hpp"
+#include "ppc.hpp"
 #include "scene.hpp"
-
-#include "_V3.hpp"
-#include "_M33.hpp"
-#include "_ppc.hpp"
 
 using namespace std;
 
@@ -20,11 +17,12 @@ Scene::Scene() {
 	ppc = new PPC();
 
 	// ADDS BOX
-	/*{
-		MESH m;
-		m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
-		geometry.add_mesh(m);
-	}*/
+	//{
+	//	MESH m;
+	//	m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
+	//	m.fill = true;
+	//	geometry.add_mesh(m);
+	//}
 
 	// SPHERE WIRE FRAME
 	//{
@@ -38,6 +36,12 @@ Scene::Scene() {
 		MESH m;
 		m.setAsCylinder(V3(0.0f, 0.0f, -500.0f), 20U, 200.0f, 100.0f);
 		geometry.add_mesh(m);
+	}
+
+	// ADD LIGHT SOURCE
+	{
+		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 1.0f), COLOR(255, 255, 255), 1.4f);
+		geometry.add_light(li);
 	}
 
 	rotation_axis1 = V3(0.0f, -1.0f, -1.0f);
@@ -63,20 +67,50 @@ void Scene::SaveTxtButton() {
 }
 
 void Scene::LoadBinButton() {
-	geometry.meshes[IO_MESH].LoadBin();
+	geometry.meshes[SEL_MESH].LoadBin();
 	fb->redraw();
 }
 
 void Scene::SaveBinButton() {
-	geometry.meshes[IO_MESH].SaveAsBin();
+	geometry.meshes[SEL_MESH].SaveAsBin();
 	fb->redraw();
 }
 
 void Scene::RotationButton() {
-	geometry.meshes[IO_MESH].rotate(rotation_axis1, rotation_axis2, 0.1f);
+	geometry.meshes[SEL_MESH].rotate(rotation_axis1, rotation_axis2, 0.1f);
 	fb->redraw();
 }
 
 void Scene::TransitionCamera() {
 	fb->startThread();
+}
+
+void Scene::LightLeft() {
+	geometry.lights[SEL_LIGHT].source[Dim::X] -= 0.1f;
+	fb->redraw();
+}
+
+void Scene::LightRight() {
+	geometry.lights[SEL_LIGHT].source[Dim::X] += 0.1f;
+	fb->redraw();
+}
+
+void Scene::LightUp() {
+	geometry.lights[SEL_LIGHT].source[Dim::Y] -= 0.1f;
+	fb->redraw();
+}
+
+void Scene::LightDown() {
+	geometry.lights[SEL_LIGHT].source[Dim::Y] += 0.1f;
+	fb->redraw();
+}
+
+void Scene::LightFront() {
+	geometry.lights[SEL_LIGHT].source[Dim::Z] += 0.1f;
+	fb->redraw();
+}
+
+void Scene::LightBack() {
+	geometry.lights[SEL_LIGHT].source[Dim::Z] -= 0.1f;
+	fb->redraw();
 }

@@ -51,9 +51,57 @@ void GUI::cb_Play(Fl_Return_Button* o, void* v) {
     ((GUI*)(o->parent()->user_data()))->cb_Play_i(o,v);
 }
 
+void GUI::cb_LightLeftButton_i(Fl_Return_Button*, void*) {
+    LightLeftButton_cb();
+}
+
+void GUI::cb_LightLeftButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightLeftButton_i(o, v);
+}
+
+void GUI::cb_LightRightButton_i(Fl_Return_Button*, void*) {
+    LightRightButton_cb();
+}
+
+void GUI::cb_LightRightButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightRightButton_i(o, v);
+}
+
+void GUI::cb_LightUpButton_i(Fl_Return_Button*, void*) {
+    LightUpButton_cb();
+}
+
+void GUI::cb_LightUpButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightUpButton_i(o, v);
+}
+
+void GUI::cb_LightDownButton_i(Fl_Return_Button*, void*) {
+    LightDownButton_cb();
+}
+
+void GUI::cb_LightDownButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightDownButton_i(o, v);
+}
+
+void GUI::cb_LightFrontButton_i(Fl_Return_Button*, void*) {
+    LightFrontButton_cb();
+}
+
+void GUI::cb_LightFrontButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightFrontButton_i(o, v);
+}
+
+void GUI::cb_LightBackButton_i(Fl_Return_Button*, void*) {
+    LightBackButton_cb();
+}
+
+void GUI::cb_LightBackButton(Fl_Return_Button* o, void* v) {
+    ((GUI*)(o->parent()->user_data()))->cb_LightBackButton_i(o, v);
+}
+
 GUI::GUI() {
     {
-        uiw = new Fl_Double_Window(180, 405, "GUI");
+        uiw = new Fl_Double_Window(400, 405, "GUI");
         uiw->user_data((void*)(this));
         {
             Fl_Button* o = new Fl_Button(15, 15, 150, 50, "Load Txt");
@@ -83,6 +131,32 @@ GUI::GUI() {
         {
             Fl_Button* o = new Fl_Button(15, 340, 150, 50, "Play");
             o->callback((Fl_Callback*)cb_Play);
+        } // Fl_Return_Button* o
+
+        // MOVE LIGHT
+        {
+            Fl_Button* o = new Fl_Button(180, 55, 30, 30, "<");
+            o->callback((Fl_Callback*)cb_LightLeftButton);
+        } // Fl_Return_Button* o
+        {
+            Fl_Button* o = new Fl_Button(260, 55, 30, 30, ">");
+            o->callback((Fl_Callback*)cb_LightRightButton);
+        } // Fl_Return_Button* o
+        {
+            Fl_Button* o = new Fl_Button(220, 15, 30, 30, "^");
+            o->callback((Fl_Callback*)cb_LightUpButton);
+        } // Fl_Return_Button* o
+        {
+            Fl_Button* o = new Fl_Button(220, 95, 30, 30, "\/");
+            o->callback((Fl_Callback*)cb_LightDownButton);
+        } // Fl_Return_Button* o
+        {
+            Fl_Button* o = new Fl_Button(220, 45, 30, 30, "+");
+            o->callback((Fl_Callback*)cb_LightFrontButton);
+        } // Fl_Return_Button* o
+        {
+            Fl_Button* o = new Fl_Button(220, 65, 30, 30, "-");
+            o->callback((Fl_Callback*)cb_LightBackButton);
         } // Fl_Return_Button* o
         uiw->end();
     } // Fl_Double_Window* uiw
@@ -119,4 +193,28 @@ void GUI::RotationButton_cb() {
 
 void GUI::Play_cb() {
     scene->TransitionCamera();
+}
+
+void GUI::LightLeftButton_cb() {
+    scene->LightLeft();
+}
+
+void GUI::LightRightButton_cb() {
+    scene->LightRight();
+}
+
+void GUI::LightUpButton_cb() {
+    scene->LightUp();
+}
+
+void GUI::LightDownButton_cb() {
+    scene->LightDown();
+}
+
+void GUI::LightFrontButton_cb() {
+    scene->LightFront();
+}
+
+void GUI::LightBackButton_cb() {
+    scene->LightBack();
 }

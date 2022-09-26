@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cmath>
+
 #include "Dimension.hpp"
 #include "V3.hpp"
 
@@ -25,11 +26,13 @@ public:
     friend istream& operator>>(istream &in, M33 &matrix);
 
     // Get and set each vector.
-    inline V3& operator[](Dim dim);
-    inline V3& operator[](int i);
+    V3& operator[](Dim dim);
+    V3& operator[](int i);
         
     // Matrix (this) and matrix, vector, and scalar multiplication
     M33 operator*(M33& matrix);
+    void operator*=(M33& m2);
+    friend void operator*=(V3& v, M33& m);
     V3 operator*(V3& vector);
     void operator*=(float scalar);
     M33 operator*(float scalar);
@@ -41,7 +44,9 @@ public:
     void transpose();
         
     // Get inverse of matrix.
-    inline M33 inverse();
+    M33 inverse();
     M33 inverse_iter(int max_iter);
-    inline V3 conjugate_grad(V3 &b, int maxiter);
+    V3 conjugate_grad(V3 &b, int maxiter);
+
+    static M33 get_rotation_matrix(V3 axis1, V3 axis, float alpha);
 };
