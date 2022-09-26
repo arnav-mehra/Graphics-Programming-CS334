@@ -238,11 +238,18 @@ inline void FrameBuffer::applyTriangle(TRIANGLE& tri, vector<float>& z_index) {
 			z_index[p] = z_value;
 			pos[Dim::Z] = z_value;
 
+			// light
+			float light_scalar = 0.0f;
+			for (int i = 0; i < compute.num_lights; i++) {
+				LIGHT& li = compute.lights[i];
+				light_scalar += li.offset_lighting(pos, normal, tri.phong_exp);
+			}
+
 			// compute color
 			const float di = abs(min3(s1, s2, s3));
 			const float aa = min(di, 200.0f) * 0.005f;
 			//cout << di << '\n';
-			COLOR c = INTERPOLATE::getColor(tri, pos) * aa;
+			COLOR c = INTERPOLATE::getColor(tri, pos) * aa * light_scalar;
 			pix[p] = c.value;
 		}
 	}

@@ -17,6 +17,8 @@
 #define MESH_TRI_CAPACITY 1000
 #define LIGHT_CAPACITY 1
 
+#define K_AMBIENT 1.0f
+
 typedef unsigned int U32;
 
 using namespace std;
@@ -24,6 +26,7 @@ using namespace std;
 class GEO_META {
 public:
 	U32 width;
+	float phong_exp = 200.0f;
 };
 
 class COLOR {
@@ -124,7 +127,7 @@ public:
 	LIGHT(V3 src, V3 direct, COLOR sh, float a);
 
 	bool is_subject(V3& point);
-	float offset_lighting(V3& pos, V3& norm);
+	float offset_lighting(V3& point, V3& norm, float phong_exp);
 };
 
 class GEOMETRY {
@@ -161,9 +164,11 @@ public:
 	int num_segments = 0;
 	int num_spheres = 0;
 	int num_triangles = 0;
+	int num_lights = 0;
 	SPHERE spheres[SPH_CAPACITY];
 	SEGMENT segments[SEG_CAPACITY];
 	TRIANGLE triangles[TRI_CAPACITY];
+	LIGHT lights[LIGHT_CAPACITY];
 
 	COMPUTED_GEOMETRY();
 

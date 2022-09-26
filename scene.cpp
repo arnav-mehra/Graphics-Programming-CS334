@@ -17,12 +17,12 @@ Scene::Scene() {
 	ppc = new PPC();
 
 	// ADDS BOX
-	//{
-	//	MESH m;
-	//	m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
-	//	m.fill = true;
-	//	geometry.add_mesh(m);
-	//}
+	{
+		MESH m;
+		m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
+		m.fill = true;
+		geometry.add_mesh(m);
+	}
 
 	// SPHERE WIRE FRAME
 	//{
@@ -32,15 +32,15 @@ Scene::Scene() {
 	//}
 
 	// SPHERE WIRE FRAME
-	{
+	/*{
 		MESH m;
 		m.setAsCylinder(V3(0.0f, 0.0f, -500.0f), 20U, 200.0f, 100.0f);
 		geometry.add_mesh(m);
-	}
+	}*/
 
 	// ADD LIGHT SOURCE
 	{
-		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 1.0f), COLOR(255, 255, 255), 1.4f);
+		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 2.0f), COLOR(255, 255, 255), 1.4f);
 		geometry.add_light(li);
 	}
 

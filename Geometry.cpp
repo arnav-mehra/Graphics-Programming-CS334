@@ -454,15 +454,18 @@ bool LIGHT::is_subject(V3& point) {
 	return cos_sq >= thresold; // falls within the fov
 }
 
-float LIGHT::offset_lighting(V3& point, V3& norm) {
-	if (!is_subject(pos)) return 0.0f; // not hit by light -> ambient
-
-	V3 delta = point - source;
-	float perfect = (norm * norm) * (delta * delta);
-	float frac1 = (norm * delta);
-	frac1 *= frac1;
-	frac1 /= perfect;
-	return frac1
+float LIGHT::offset_lighting(V3& point, V3& norm, float phong_exp) {
+	if (!is_subject(point)) return K_AMBIENT; // not hit by light -> ambient lighting
+	// rotate point_to_light PI radian about normal using projection
+	V3 point_to_light = source - point;
+	float dot = norm * point_to_light;
+	float proj = (dot) / (norm * norm);
+	V3 reflected_light = norm * (proj * 2.0f) - point_to_light;
+	// use phong's method
+	V3 eye_vec = point - scene->ppc->C;
+	float k_diffuse = max(dot, 0.0f);
+	float k_specular = pow(eye_vec * reflected_light, phong_exp);
+	return K_AMBIENT + (1.0f - K_AMBIENT) * k_diffuse + k_specular;
 }
 
 GEOMETRY::GEOMETRY() {}
@@ -554,6 +557,7 @@ void COMPUTED_GEOMETRY::recompute_geometry() {
 	num_segments = 0;
 	num_spheres = 0;
 	num_triangles = 0;
+	num_lights = 0;
 	GEOMETRY& geometry = scene->geometry;
 
 	for (int i = 0; i < geometry.num_segments; i++)
@@ -646,5 +650,13 @@ void COMPUTED_GEOMETRY::add_mesh(MESH& mesh) {
 }
 
 void COMPUTED_GEOMETRY::add_light(LIGHT& li) {
-	add_sphere(SPHERE(li.source, COLOR(255, 255, 255), 4));
+	add_sphere(SPHERE(li.source, COLOR(255, 255, 255), 10));
+	add_segment(
+		SEGMENT(
+			SPHERE(li.source, COLOR(255, 255, 255)),
+			SPHERE(li.source + li.direction * 200.0f, COLOR(255, 255, 255)),
+			5
+		)
+	);
+	lights[num_lights++] = li;
 }
