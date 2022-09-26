@@ -40,7 +40,7 @@ Scene::Scene() {
 
 	// ADD LIGHT SOURCE
 	{
-		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 2.0f), COLOR(255, 255, 255), 1.4f);
+		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 2.0f), COLOR(255, 255, 255), 10.0f);
 		geometry.add_light(li);
 	}
 

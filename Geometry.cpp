@@ -440,7 +440,7 @@ LIGHT::LIGHT(V3 src, V3 direct, COLOR sh, float a) {
 	direction.normalize();
 	shade = sh;
 
-	float cos_a = cos(a); // = direct.mag / edge
+	float cos_a = cos(DEG_TO_RAD(a)); // = direct.mag / edge
 	thresold = cos_a * cos_a; // (direction * edge)^2 / (|direction||edge|)^2
 }
 
@@ -455,7 +455,8 @@ bool LIGHT::is_subject(V3& point) {
 }
 
 float LIGHT::offset_lighting(V3& point, V3& norm, float phong_exp) {
-	if (!is_subject(point)) return K_AMBIENT; // not hit by light -> ambient lighting
+	if (!is_subject(point)) return 0.0f; // not hit by light -> ambient lighting
+
 	// rotate point_to_light PI radian about normal using projection
 	V3 point_to_light = source - point;
 	float dot = norm * point_to_light;

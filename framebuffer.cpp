@@ -193,10 +193,11 @@ inline void FrameBuffer::applyTriangle(TRIANGLE& tri, vector<float>& z_index) {
 	V3 c2 = p3 - p2;
 	V3 c3 = p2 - p1;
 
-	// z-value formula
-	V3 normal = c3 ^ c2; // the normal
-	const float offset = normal * p1; // offset = n_x * x + n_y * y  + n_z * z
-	const float normal_z_inv = 1.0f / normal[Dim::Z];
+	// z-value formula: z = (offset - n_x * x - n_y * y) / n_z
+	V3 normal = c3 ^ c2;
+	if (normal[Dim::Z] == 0.0f) return; // surface is parallel, dont render
+	normal /= normal[Dim::Z]; // new formula: z = offset - n_x * x - n_y * y
+	const float offset = normal * p1;
 
 	// 0 out z-values of deltas for 2d curl
 	c1[Dim::Z] = 0.0f;
@@ -232,17 +233,26 @@ inline void FrameBuffer::applyTriangle(TRIANGLE& tri, vector<float>& z_index) {
 			}
 
 			// compute z-values
-			const float z_value = (offset - normal[Dim::X] * (float) x - normal[Dim::Y] * (float) y) * normal_z_inv;
+			const float z_value = offset - normal[Dim::X] * (float) x - normal[Dim::Y] * (float) y;
 			const U32 p = y * w + x;
 			if (z_value > z_index[p]) continue;
 			z_index[p] = z_value;
 			pos[Dim::Z] = z_value;
 
 			// light
+			V3 real_pos;
+			V3 real_p1;
+			V3 real_p2;
+			V3 real_p3;
+			scene->ppc->unproject(pos, real_pos);
+			scene->ppc->unproject(p1, real_p1);
+			scene->ppc->unproject(p2, real_p2);
+			scene->ppc->unproject(p3, real_p3);
+			V3 real_norm = (real_p1 - real_p2) ^ (real_p1 - real_p3);
 			float light_scalar = 0.0f;
 			for (int i = 0; i < compute.num_lights; i++) {
 				LIGHT& li = compute.lights[i];
-				light_scalar += li.offset_lighting(pos, normal, tri.phong_exp);
+				light_scalar += li.offset_lighting(real_pos, real_norm, tri.phong_exp);
 			}
 
 			// compute color
