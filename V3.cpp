@@ -80,16 +80,13 @@ void V3::operator/=(float scalar) {
 }
 
 void V3::normalize() {
-    float scalar = 1.0f / this->length();
+    float scalar = 1.0f / length();
     (*this) *= scalar;
 }
 
 void V3::normalize_quake3() {
-    float scalar =
-        (*this)[Dim::X] * (*this)[Dim::X]
-        + (*this)[Dim::Y] * (*this)[Dim::Y]
-        + (*this)[Dim::Z] * (*this)[Dim::Z];
-    quake3(scalar);
+    float scalar = (*this) * (*this);
+    quake3(scalar); // scalar -> 1 / sqrt(scalar)
     (*this) *= scalar;
 }
 

@@ -440,19 +440,29 @@ LIGHT::LIGHT(V3 src, V3 direct, COLOR sh, float a) {
 	direction.normalize();
 	shade = sh;
 
-	float cos_a = cos(a);
-	thresold = cos_a * cos_a; // (diag ^ <1,0,0>).selfDot()
+	float cos_a = cos(a); // = direct.mag / edge
+	thresold = cos_a * cos_a; // (direction * edge)^2 / (|direction||edge|)^2
 }
 
-bool LIGHT::is_subject(V3& point, V3& norm) {
+bool LIGHT::is_subject(V3& point) {
 	// angle check
 	V3 delta = point - source;
 	float dot = delta * direction;
 	if (dot < 0.0f) return false; // angle delta + light dir is acute
 	// norm check
-	V3 cross = delta ^ direction;
-	float area_sq = (cross * cross) / (direction * direction);
-	return area_sq <= thresold; // falls within the fov
+	float cos_sq = (dot * dot) / (delta * delta);
+	return cos_sq >= thresold; // falls within the fov
+}
+
+float LIGHT::offset_lighting(V3& point, V3& norm) {
+	if (!is_subject(pos)) return 0.0f; // not hit by light -> ambient
+
+	V3 delta = point - source;
+	float perfect = (norm * norm) * (delta * delta);
+	float frac1 = (norm * delta);
+	frac1 *= frac1;
+	frac1 /= perfect;
+	return frac1
 }
 
 GEOMETRY::GEOMETRY() {}
