@@ -122,6 +122,7 @@ public:
 	V3 direction;
 	COLOR shade;
 	float thresold;
+	float a;
 
 	LIGHT();
 	LIGHT(V3 src, V3 direct, COLOR sh, float a);
