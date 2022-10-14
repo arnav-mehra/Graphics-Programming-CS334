@@ -155,7 +155,7 @@ void V3::operator-=(V3& vector) {
     (*this)[Dim::Z] -= vector[Dim::Z];
 }
 
-void V3::rotate(V3 axis1, V3 axis2, float alpha) {
+void V3::rotate(V3& axis1, V3& axis2, float alpha) {
     // translate all points so axis1 is at <0, 0, 0>
     axis2 -= axis1;
     (*this) -= axis1;
@@ -166,35 +166,30 @@ void V3::rotate(V3 axis1, V3 axis2, float alpha) {
     axis2 += axis1;
 }
 
-void V3::rotate(V3 axis, float alpha) {
+void V3::rotate(V3& axis, float alpha) {
     // xy rotation to eliminate axis y dimension
-    M33 xy_rotation = M33(1);
-    M33 xy_rotation_inv = M33(1);
-    if (axis[Dim::Y] != 0.0f) {
-        float xy_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
-        float xy_cos_theta = axis[0] * xy_len_inverse;
-        float xy_sin_theta = axis[1] * xy_len_inverse;
-        xy_rotation = M33(Dim::Z, -xy_sin_theta, xy_cos_theta);
-        xy_rotation_inv = M33(Dim::Z, xy_sin_theta, xy_cos_theta);
-        // perform xy rotation
-        axis = xy_rotation * axis;
-        (*this) = xy_rotation * (*this);
-    }
-    M33 xz_rotation = M33(1);
-    M33 xz_rotation_inv = M33(1);
-    if (axis[Dim::Z] != 0.0f) {
-        // xz rotation to eliminate axis z dimension
-        float xz_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[2] * axis[2]);
-        float xz_cos_theta = axis[0] * xz_len_inverse;
-        float xz_sin_theta = axis[2] * xz_len_inverse;
-        xz_rotation = M33(Dim::Y, xz_sin_theta, xz_cos_theta);
-        xz_rotation_inv = M33(Dim::Y, -xz_sin_theta, xz_cos_theta);
-        // perform xz rotation (axis no longer needed)
-        (*this) = xz_rotation * (*this);
-    }
+    float xy_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
+    float xy_cos_theta = axis[0] * xy_len_inverse;
+    float xy_sin_theta = axis[1] * xy_len_inverse;
+    M33 xy_rotation = M33(Dim::Z, -xy_sin_theta, xy_cos_theta);
+    M33 xy_rotation_inv = M33(Dim::Z, xy_sin_theta, xy_cos_theta);
+    // perform xy rotation
+    axis = xy_rotation * axis;
+    (*this) = xy_rotation * (*this);
+
+    // xz rotation to eliminate axis z dimension
+    float xz_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[2] * axis[2]);
+    float xz_cos_theta = axis[0] * xz_len_inverse;
+    float xz_sin_theta = axis[2] * xz_len_inverse;
+    M33 xz_rotation = M33(Dim::Y, xz_sin_theta, xz_cos_theta);
+    M33 xz_rotation_inv = M33(Dim::Y, -xz_sin_theta, xz_cos_theta);
+    // perform xz rotation (axis no longer needed)
+    (*this) = xz_rotation * (*this);
+
     // axis lays entirely on x-axis, rotate alpha degrees
     M33 yz_rotation = M33(Dim::X, alpha);
     (*this) = yz_rotation * (*this);
+
     // revert xy + xz rotations
     (*this) = xz_rotation_inv * (*this);
     (*this) = xy_rotation_inv * (*this);

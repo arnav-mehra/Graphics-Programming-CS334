@@ -20,8 +20,6 @@ private:
 	static void cb_LoadBinButton(Fl_Button*, void*);
 	void cb_SaveBinButton_i(Fl_Button*, void*);
 	static void cb_SaveBinButton(Fl_Button*, void*);
-	void cb_TeapotButton_i(Fl_Button*, void*);
-	static void cb_TeapotButton(Fl_Button*, void*);
 
 	void cb_RotationButton_i(Fl_Button*, void*);
 	static void cb_RotationButton(Fl_Button*, void*);
@@ -42,23 +40,6 @@ private:
 	void cb_LightBackButton_i(Fl_Return_Button*, void*);
 	static void cb_LightBackButton(Fl_Return_Button*, void*);
 
-	void cb_LightIncExponentButton_i(Fl_Return_Button*, void*);
-	static void cb_LightIncExponentButton(Fl_Return_Button*, void*);
-	void cb_LightDecExponentButton_i(Fl_Return_Button*, void*);
-	static void cb_LightDecExponentButton(Fl_Return_Button*, void*);
-
-	void cb_LightIncAmbientButton_i(Fl_Return_Button*, void*);
-	static void cb_LightIncAmbientButton(Fl_Return_Button*, void*);
-	void cb_LightDecAmbientButton_i(Fl_Return_Button*, void*);
-	static void cb_LightDecAmbientButton(Fl_Return_Button*, void*);
-
-	void cb_SM1Button_i(Fl_Return_Button*, void*);
-	static void cb_SM1Button(Fl_Return_Button*, void*);
-	void cb_SM2Button_i(Fl_Return_Button*, void*);
-	static void cb_SM2Button(Fl_Return_Button*, void*);
-	void cb_SM3Button_i(Fl_Return_Button*, void*);
-	static void cb_SM3Button(Fl_Return_Button*, void*);
-
 public:
 	void show();
 	void LoadTxtButton_cb();
@@ -66,7 +47,6 @@ public:
 	void LoadBinButton_cb();
 	void SaveBinButton_cb();
 	void RotationButton_cb();
-	void TeapotButton_cb();
 
 	void Play_cb();
 
@@ -76,13 +56,4 @@ public:
 	void LightDownButton_cb();
 	void LightFrontButton_cb();
 	void LightBackButton_cb();
-
-	void LightIncExponentButton_cb();
-	void LightDecExponentButton_cb();
-	void LightIncAmbientButton_cb();
-	void LightDecAmbientButton_cb();
-
-	void SM1Button_cb();
-	void SM2Button_cb();
-	void SM3Button_cb();
 };

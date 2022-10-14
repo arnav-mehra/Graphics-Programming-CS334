@@ -1,62 +1,31 @@
 INSTRUCTIONS:
+	
+1.	PPC:
+		1. View "ppc.hpp" and "_ppc.hpp" to see PPC implementation.
+		2. Test PPC while running using:
+			- TRANSLATIONS: 'w', 'a', 's', 'd', 'c', 'v' to move forward/left/backward/right/up/down.
+			- ZOOM: '-' and '=' to zoom out/in.
+			- ROLL & PAN: Arrow keys to look up/down/left/right.
+			- TILT: 'e' and 'r' to tilt clockwise/counter-clockwise
+		2. Test INTERPOLATION by clicking "Play", the 3 key frames are clearly present.
+		3. Test Txt IO:
+			- Modify INPUT_TXT and OUTPUT_TXT in ppc.hpp to whatever you wish.
+			- Save PPC to .txt by clicking "Load Txt" and "Save Txt" buttons in GUI.
+		4. Visualization: Simply run program.
 
-NOTE: CURRENTLY SET TO SCREENSPACE INTERPOLATION, CAN BE CHANGED TO REAL SPACE INTERPOLATION BY SETTING SCREENSPACE in framebuffer.cpp to false.
+2.	TRIANGLE MESH
 
-1. RENDERING IN FILLED MODE:
-	1. Choose a piece of geometry to uncomment in "scene.cpp" (skip 1 and 2 for the teapot).
-	2. make sure to add mesh.fill = true if not already present.
+		1. View "Geometry.hpp" and "_Geometry.hpp" to see "MESH" class implementation.
+			- NOTE: RenderAsWireFrame is found in "COMPUTED_GEOMETRY"'s "add_mesh" function in "_Geometry.hpp".
+			- NOTE: Color interpolation is found in "Framebuffer"'s "applyGeometry".
+		2. Test Bin IO:
+			- Modify "INPUT_BIN" and "OUTPUT_BIN" in "Geometry.hpp" to control files written to/read from.
+			- (WARNING) You can modify "SEL_MESH" to control mesh we save, write over, and rotate, but keep the index in out of bounds.
+			- Save MESH to .bin by clicking "Load Bin" and "Save Bin" buttons in GUI.
+		3. Run application to view meshes, change between 
+		4. Click "Rotate Mesh" to see mesh rotate about axis defined by rotation_axis1 and rotation_axis2 (starting and end points of rotation line segment).
+
+EXTRA CREDIT - SPHERE:
+	1. Uncomment sphere wire frame section in "scene.cpp".
+	2. Comment box wire frame.
 	3. Run program.
-	4. Click "Load Teapot" Button, if you are loading the teapot.
-	5. Click "Load Txt" Button.
-	6. Move camera around until you can see the selected geometry, which will be filled in.
-
-2. LIGHT:
-	1. Run program.
-	2. Click "Load Teapot" Button.
-	3. Click "Load Txt" Button.
-	4. Click the arrows in the top right of the GUI to move light in the +x, -x, +y, -y, and +/- for +z, -z
-	Note: The white dot with the line segment represent the light source and direction. 
-	Note: I have a very high tolerance set for the shadow buffer, this may create some oddities while fixing others.
-
-3. LIGHTING:
-	1. Run program.
-	2. Click "Load Teapot" Button.
-	3. Click "Load Txt" Button.
-	4. Click "+PhongExp" and "-PhongExp" to adjust phong exponent, the actual exponent is printed to the cmd line.
-	5. Click "+Ambient" and "-Ambient" to adjust k_ambient, the actual value is printed to the cmd line.
-	Note: I have a very high tolerance set for the shadow buffer, this may create some oddities while fixing others.
-
-4. THREE SHADING MODES:
-	1. Run program.
-	2. Click "Load Teapot" Button.
-	3. Click "Load Txt" Button.
-	4. Click "SM1", "SM2", "SM3" in the GUI to change lighting modes.
-	NOTE: LIGHT SOURCES DO NOT AFFECT SM1. (if you dont believe me, try moving the light source in SM1).
-
-5. EXAMPLE
-	1. View MOVIE.mov in the folder.
-
-EXTRA CREDIT - DIRECTIONAL LIGHT SOURCE:
-	1. Click "Load Teapot" Button.
-	2. Click "Load Txt" Button.
-	3. Click "SM3" (or "SM2") Button.
-	4. Run program. This is already baked into the light projection.
-
-EXTRA CREDIT - MULTIPLE LIGHTS:
-	1. Uncomment 2nd light section in "scene.cpp".
-	2. Change the last parameter of the first LIGHT object in "scene.cpp" to "DEG_TO_RAD(40.0f)".
-	3. Run program.
-	4. Click "SM3" Button.
-	5. Click "Load Teapot" Button.
-	6. Click "Load Txt" Button.
-	Note: There will be 2 lights shining on the teapot now, with distinct projections.
-
-EXTRA CREDIT - CONIC LIGHT SPOT:
-	1. Change the last parameter of the first LIGHT object in "scene.cpp" to "DEG_TO_RAD(40.0f)".
-	2. Run program.
-	3. Click "SM3" Button.
-	4. Click "Load Teapot" Button.
-	5. Click "Load Txt" Button.
-	6. Click "Play" Button.
-	Note: The beam will be restricted to the angle provided (which is 40 degrees in this case),
-	thus creating a conic light spot on the teapot as the light moves.

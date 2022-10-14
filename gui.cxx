@@ -35,15 +35,6 @@ void GUI::cb_SaveBinButton(Fl_Button* o, void* v) {
 }
 
 
-void GUI::cb_TeapotButton_i(Fl_Button*, void*) {
-    TeapotButton_cb();
-}
-
-void GUI::cb_TeapotButton(Fl_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_TeapotButton_i(o, v);
-}
-
-
 void GUI::cb_RotationButton_i(Fl_Button*, void*) {
     RotationButton_cb();
 }
@@ -108,62 +99,6 @@ void GUI::cb_LightBackButton(Fl_Return_Button* o, void* v) {
     ((GUI*)(o->parent()->user_data()))->cb_LightBackButton_i(o, v);
 }
 
-void GUI::cb_LightIncExponentButton_i(Fl_Return_Button*, void*) {
-    LightIncExponentButton_cb();
-}
-
-void GUI::cb_LightIncExponentButton(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_LightIncExponentButton_i(o, v);
-}
-
-void GUI::cb_LightDecExponentButton_i(Fl_Return_Button*, void*) {
-    LightDecExponentButton_cb();
-}
-
-void GUI::cb_LightDecExponentButton(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_LightDecExponentButton_i(o, v);
-}
-
-void GUI::cb_LightIncAmbientButton_i(Fl_Return_Button*, void*) {
-    LightIncAmbientButton_cb();
-}
-
-void GUI::cb_LightIncAmbientButton(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_LightIncAmbientButton_i(o, v);
-}
-
-void GUI::cb_LightDecAmbientButton_i(Fl_Return_Button*, void*) {
-    LightDecAmbientButton_cb();
-}
-
-void GUI::cb_LightDecAmbientButton(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_LightDecAmbientButton_i(o, v);
-}
-
-void GUI::cb_SM1Button_i(Fl_Return_Button*, void*) {
-    SM1Button_cb();
-}
-
-void GUI::cb_SM1Button(Fl_Return_Button* o , void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_SM1Button_i(o, v);
-}
-
-void GUI::cb_SM2Button_i(Fl_Return_Button*, void*) {
-    SM2Button_cb();
-}
-
-void GUI::cb_SM2Button(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_SM2Button_i(o, v);
-}
-
-void GUI::cb_SM3Button_i(Fl_Return_Button*, void*) {
-    SM3Button_cb();
-}
-
-void GUI::cb_SM3Button(Fl_Return_Button* o, void* v) {
-    ((GUI*)(o->parent()->user_data()))->cb_SM3Button_i(o, v);
-}
-
 GUI::GUI() {
     {
         uiw = new Fl_Double_Window(400, 405, "GUI");
@@ -188,13 +123,6 @@ GUI::GUI() {
             o->selection_color(FL_DARK_RED);
             o->callback((Fl_Callback*)cb_SaveBinButton);
         } // Fl_Button* o
-        
-        {
-            Fl_Button* o = new Fl_Button(200, 210, 150, 50, "Load Teapot");
-            o->selection_color(FL_DARK_RED);
-            o->callback((Fl_Callback*)cb_TeapotButton);
-        } // Fl_Button* o
-
         {
             Fl_Button* o = new Fl_Button(15, 275, 150, 50, "Rotate Mesh");
             o->selection_color(FL_DARK_RED);
@@ -229,36 +157,6 @@ GUI::GUI() {
         {
             Fl_Button* o = new Fl_Button(220, 65, 30, 30, "-");
             o->callback((Fl_Callback*)cb_LightBackButton);
-        } // Fl_Return_Button* o
-
-        {
-            Fl_Button* o = new Fl_Button(200, 140, 80, 30, "+PhongExp");
-            o->callback((Fl_Callback*)cb_LightIncExponentButton);
-        } // Fl_Return_Button* o
-        {
-            Fl_Button* o = new Fl_Button(300, 140, 80, 30, "-PhongExp");
-            o->callback((Fl_Callback*)cb_LightDecExponentButton);
-        } // Fl_Return_Button* o
-        {
-            Fl_Button* o = new Fl_Button(200, 170, 80, 30, "+Ambient");
-            o->callback((Fl_Callback*)cb_LightIncAmbientButton);
-        } // Fl_Return_Button* o
-        {
-            Fl_Button* o = new Fl_Button(300, 170, 80, 30, "-Ambient");
-            o->callback((Fl_Callback*)cb_LightDecAmbientButton);
-        } // Fl_Return_Button* o
-
-        {
-            Fl_Button* o = new Fl_Button(200, 270, 30, 30, "SM1");
-            o->callback((Fl_Callback*)cb_SM1Button);
-        } // Fl_Return_Button* o
-        {
-            Fl_Button* o = new Fl_Button(240, 270, 30, 30, "SM2");
-            o->callback((Fl_Callback*)cb_SM2Button);
-        } // Fl_Return_Button* o
-        {
-            Fl_Button* o = new Fl_Button(280, 270, 30, 30, "SM3");
-            o->callback((Fl_Callback*)cb_SM3Button);
         } // Fl_Return_Button* o
         uiw->end();
     } // Fl_Double_Window* uiw
@@ -319,54 +217,4 @@ void GUI::LightFrontButton_cb() {
 
 void GUI::LightBackButton_cb() {
     scene->LightBack();
-}
-
-void GUI::LightIncExponentButton_cb() {
-    float& exp = scene->phong_exp;
-    exp = min(1000.0f, exp + 5.0f);
-    cout << "New Phong Exponent: " << exp << '\n';
-    scene->geometry.meshes[SEL_MESH].set_phong_exp(exp);
-    scene->fb->redraw();
-}
-
-void GUI::LightDecExponentButton_cb() {
-    float& exp = scene->phong_exp;
-    exp = max(0.0f, exp - 5.0f);
-    cout << "New Phong Exponent: " << exp << '\n';
-    scene->geometry.meshes[SEL_MESH].set_phong_exp(exp);
-    scene->fb->redraw();
-}
-
-void GUI::LightIncAmbientButton_cb() {
-    float& amb = scene->ambient;
-    amb = min(1.0f, amb + 0.02f);
-    cout << "New Ambient: " << amb << '\n';
-    scene->fb->redraw();
-}
-
-void GUI::LightDecAmbientButton_cb() {
-    float& amb = scene->ambient;
-    amb = max(0.0f, amb - 0.02f);
-    cout << "New Ambient: " << amb << '\n';
-    scene->fb->redraw();
-}
-
-void GUI::SM1Button_cb() {
-    scene->sm = 1;
-    scene->fb->redraw();
-}
-
-void GUI::SM2Button_cb() {
-    scene->sm = 2;
-    scene->fb->redraw();
-}
-
-void GUI::SM3Button_cb() {
-    scene->sm = 3;
-    scene->fb->redraw();
-}
-
-void GUI::TeapotButton_cb() {
-    scene->TeapotButton();
-    scene->fb->redraw();
 }
