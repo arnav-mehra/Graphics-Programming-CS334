@@ -1,1 +1,5 @@
 /.vs
+*.exe
+*.exe
+x64/
+externals/

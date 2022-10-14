@@ -3,21 +3,16 @@
 #include <vector>
 
 #include "V3.hpp"
+#include "ppc.hpp"
 
 #define INPUT_BIN "geo.bin"
 #define OUTPUT_BIN "geo.bin"
 #define SEL_MESH 0 // changes index of mesh in geometry that gets read/written and also rotated.
-#define SEL_LIGHT 0 // light that is moved 
+#define SEL_LIGHT 0 // light that is moved
 
-// NOTE: Changing below parameters will mess up geometry file IO.
-#define SEG_CAPACITY 12000
-#define SPH_CAPACITY 1000
-#define TRI_CAPACITY 4000
-#define MESH_CAPACITY 4
-#define MESH_TRI_CAPACITY 1000
-#define LIGHT_CAPACITY 1
-
-#define K_AMBIENT 1.0f
+// LIGHTING
+#define SM_TOLERANCE 20.0f // shadow-buffer tolerance
+#define L_BUFFER_SIZE 500
 
 typedef unsigned int U32;
 
@@ -26,7 +21,6 @@ using namespace std;
 class GEO_META {
 public:
 	U32 width;
-	float phong_exp = 200.0f;
 };
 
 class COLOR {
@@ -71,6 +65,9 @@ public:
 class TRIANGLE : public GEO_META {
 public:
 	SPHERE points[3];
+	V3 norm;
+	vector<V3> norms;
+	float phong_exp;
 
 	TRIANGLE();
 	TRIANGLE(vector<SPHERE> points);
@@ -81,21 +78,25 @@ class INTERPOLATE {
 public:
 	static COLOR getColor(SEGMENT& seg, V3& pos);
 	static COLOR getColor(TRIANGLE& tri, V3& pos);
+	static COLOR getColor(TRIANGLE& tri, COLOR& c1, COLOR& c2, COLOR& c3, V3& pos);
 };
 
 class MESH {
 public:
 	// NOTE: EACH TRIANGLE HAS ITS VECTORS + COLOR CONTAINED.
-	TRIANGLE triangles[MESH_TRI_CAPACITY];
-	int edge_connectivity[MESH_TRI_CAPACITY][3];
-	int num_triangles = 0;
+	vector<TRIANGLE> triangles;
+	vector<vector<int>> edge_connectivity;
 	bool fill;
 
 	MESH();
 	MESH(vector<TRIANGLE> tris);
 	MESH(vector<TRIANGLE> tris, bool fill);
+	MESH(vector<TRIANGLE> tris, bool fill, float phong_exp);
 
 	void add_triangle(TRIANGLE tri);
+	void fix_normals();
+
+	void set_phong_exp(float exp);
 
 	V3 get_center();
 	float avg_dist_from_center();
@@ -120,59 +121,48 @@ class LIGHT {
 public:
 	V3 source;
 	V3 direction;
-	COLOR shade;
-	float thresold;
-	float a;
+	M33 dir_rot;
+	float thresold; // cos^2 thresold angle between light_to_point and direction 
+	float a; // angle of fov
+	float cot_a;
+
+	COLOR shade; // to-do
 
 	LIGHT();
 	LIGHT(V3 src, V3 direct, COLOR sh, float a);
 
-	bool is_subject(V3& point);
-	float offset_lighting(V3& point, V3& norm, float phong_exp);
+	void check_subject(V3& point, vector<vector<float>>& l_buffer);
+	bool is_subject(V3& point, vector<vector<float>>& l_buffer);
+	float offset_lighting(V3& point, V3& norm, float phong_exp, vector<vector<float>>& l_buffer);
 };
 
 class GEOMETRY {
 public:
-	int num_spheres = 0;
-	int num_segments = 0;
-	int num_triangles = 0;
-	int num_meshes = 0;
-	int num_lights = 0;
-	SPHERE spheres[SPH_CAPACITY];
-	SEGMENT segments[SEG_CAPACITY];
-	TRIANGLE triangles[TRI_CAPACITY];
-	MESH meshes[MESH_CAPACITY];
-	LIGHT lights[LIGHT_CAPACITY];
+	vector<SPHERE> spheres;
+	vector<SEGMENT> segments;
+	vector<TRIANGLE> triangles;
+	vector<MESH> meshes;
+	vector<LIGHT> lights;
 
 	GEOMETRY();
 	GEOMETRY(vector<GEOMETRY>& geos);
-	GEOMETRY(vector<SPHERE> spheres,
-			 vector<SEGMENT> segments,
-			 vector<TRIANGLE> triangles,
-			 vector<MESH> meshes,
-			 vector<LIGHT> lights);
 
 	void add_axis();
-	void add_sphere(SPHERE sph);
-	void add_segment(SEGMENT seg);
-	void add_triangle(TRIANGLE tri);
-	void add_mesh(MESH mesh);
-	void add_light(LIGHT li);
+	void add_camera(PPC ppc);
 };
 
 class COMPUTED_GEOMETRY {
 public:
-	int num_segments = 0;
-	int num_spheres = 0;
-	int num_triangles = 0;
-	int num_lights = 0;
-	SPHERE spheres[SPH_CAPACITY];
-	SEGMENT segments[SEG_CAPACITY];
-	TRIANGLE triangles[TRI_CAPACITY];
-	LIGHT lights[LIGHT_CAPACITY];
+	vector<SPHERE> spheres;
+	vector<SEGMENT> segments;
+	vector<SEGMENT*> segments_og;
+	vector<SEGMENT> segments_mesh_og;
+	vector<TRIANGLE> triangles;
+	vector<TRIANGLE*> triangles_og;
+	vector<LIGHT> lights;
+	vector<vector<vector<float>>> l_buffer;
 
 	COMPUTED_GEOMETRY();
-
 	void recompute_geometry();
 
 	// transform point based on PPC.
