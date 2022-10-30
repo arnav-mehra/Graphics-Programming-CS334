@@ -58,7 +58,7 @@ public:
     void operator-=(V3& vector);
 
     // Rotate point (this) about axis alpha radians
-    void rotate(V3& axis1, V3& axis2, float alpha);
+    void rotate(V3 axis1, V3 axis2, float alpha);
     // Rotate vector (this) about vector axis alpha radians
-    void rotate(V3& axis, float alpha);
+    void rotate(V3 axis, float alpha);
 };

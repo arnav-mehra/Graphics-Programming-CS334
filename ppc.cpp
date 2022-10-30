@@ -30,9 +30,8 @@ void PPC::rotate(M33& rot) {
 	M_inv = M.inverse();
 }
 
-
 void PPC::reset() {
-	hfovd = DEG_TO_RAD(60.0f);
+	float hfovd = DEG_TO_RAD(60.0f);
 
 	C = V3(0.0f, 0.0f, 0.0f);
 
@@ -74,7 +73,7 @@ void PPC::zoom(float inc) {
 
 	float f = vd * c;
 	f *= inc;
-	hfovd = 2 * atan(scene->w / (2.0f * a.length() / f));
+	// float hfovd = 2 * atan(scene->w / (2.0f * a.length() / f));
 	c = a * (-GetPPu()) - b * GetPPv() + vd * f;
 
 	M = M33(a, b, c);
@@ -83,25 +82,58 @@ void PPC::zoom(float inc) {
 }
 
 bool PPC::project(V3 P, V3& new_p) {
-	V3 delta = P - C;
-	V3 res = M_inv * delta;
-
-	new_p = res;
+	new_p = M_inv * (P - C);
 	if (new_p[Dim::Z] <= 0.0f) {
 		return false;
 	}
-	float z_inv = 1.0f / new_p[Dim::Z];
-	new_p[Dim::X] *= z_inv;
-	new_p[Dim::Y] *= z_inv;
+	new_p[Dim::Z] = 1.0f / new_p[Dim::Z];
+	new_p[Dim::X] *= new_p[Dim::Z];
+	new_p[Dim::Y] *= new_p[Dim::Z];
 	return true;
 }
 
-void PPC::unproject(V3 pP, V3& P) {
-	P = C + (a * pP[Dim::X] + b * pP[Dim::Y] + c) / pP[Dim::Z];
+V3 PPC::unproject(V3 pP) {
+	return C + (a * pP[Dim::X] + b * pP[Dim::Y] + c) / pP[Dim::Z];
 }
 
 void PPC::interpolate(PPC& cam1, PPC& cam2, float t) {
-	t *= t;
+	C = cam2.C * t + cam1.C * (1.0f - t);
+
+	// magnitudes are still linear
+	float c_mag = cam2.c.length() * t + cam1.c.length() * (1.0f - t);
+	float b_mag = cam2.b.length() * t + cam1.b.length() * (1.0f - t);
+	float a_mag = cam2.a.length() * t + cam1.a.length() * (1.0f - t);
+	// vector angles made linear (actual vector is not linear
+	float c_cos_theta = (cam1.c * cam2.c) / sqrt((cam1.c * cam1.c) * (cam2.c * cam2.c));
+	float c_theta = acos(c_cos_theta);
+	V3 c_axis = cam1.c ^ cam2.c;
+	c = cam1.c;
+	c.rotate(c_axis, c_theta * t);
+	c.normalize();
+	c *= c_mag;
+
+	float b_cos_theta = (cam1.b * cam2.b) / sqrt((cam1.b * cam1.b) * (cam2.b * cam2.b));
+	float b_theta = acos(b_cos_theta);
+	V3 b_axis = cam1.b ^ cam2.b;
+	b = cam1.b;
+	b.rotate(b_axis, b_theta * t);
+	b.normalize();
+	b *= b_mag;
+
+	float a_cos_theta = (cam1.a * cam2.a) / sqrt((cam1.a * cam1.a) * (cam2.a * cam2.a));
+	float a_theta = acos(a_cos_theta);
+	V3 a_axis = cam1.a ^ cam2.a;
+	a = cam1.a;
+	a.rotate(a_axis, a_theta * t);
+	a.normalize();
+	a *= a_mag;
+
+	M = M33(a, b, c);
+	M.transpose();
+	M_inv = M.inverse();
+}
+
+void PPC::interpolate_linear(PPC& cam1, PPC& cam2, float t) {
 	C = cam2.C * t + cam1.C * (1.0f - t);
 	a = cam2.a * t + cam1.a * (1.0f - t);
 	b = cam2.b * t + cam1.b * (1.0f - t);
@@ -141,6 +173,7 @@ void PPC::LoadTxt() {
 // save as txt file
 void PPC::SaveAsTxt() {
 	ofstream out(OUTPUT_TXT);
+	cout << a << b << c << C;
 	out.write((char*)this, sizeof(PPC));
 	out.close();
 }

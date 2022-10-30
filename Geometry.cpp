@@ -6,6 +6,7 @@
 #include "M33.hpp"
 #include "Geometry.hpp"
 #include "scene.hpp"
+#include "ppc.hpp"
 
 COLOR::COLOR() {}
 
@@ -14,7 +15,10 @@ COLOR::COLOR(U32 v) {
 }
 
 COLOR::COLOR(U32 r, U32 g, U32 b) {
-	value = ((b << 16) | (g << 8) | r);
+	r = min(r, 255U);
+	g = min(g, 255U);
+	b = min(b, 255U);
+	value = (b << 16) | (g << 8) | r;
 }
 
 U32 COLOR::getR() const {
@@ -48,6 +52,11 @@ COLOR COLOR::interpolate(COLOR& color, float v) {
 	return (*this) * (1.0f - v) + (color) * (v);
 }
 
+ostream& operator<<(ostream& out, COLOR& c) {
+	out << '(' << c.getR() << ", " << c.getG() << ", " << c.getB() << ')';
+	return out;
+}
+
 COLOR INTERPOLATE::getColor(SEGMENT& seg, V3& pos) {
 	float d1 = 1.0f / (pos - seg.start.point).length();
 	float d2 = 1.0f / (pos - seg.end.point).length();
@@ -57,14 +66,127 @@ COLOR INTERPOLATE::getColor(SEGMENT& seg, V3& pos) {
 }
 
 COLOR INTERPOLATE::getColor(TRIANGLE& tri, V3& pos) {
-	float d1 = 1.0f / (pos - tri.points[0].point).length();
-	float d2 = 1.0f / (pos - tri.points[1].point).length();
-	float d3 = 1.0f / (pos - tri.points[2].point).length();
+	float d1 = 1.0f / (pos - tri.points[0]).length();
+	float d2 = 1.0f / (pos - tri.points[1]).length();
+	float d3 = 1.0f / (pos - tri.points[2]).length();
 	float d_ = 1.0f / (d1 + d2 + d3);
-	COLOR res = tri.points[0].color * (d_ * d1) +
-				tri.points[1].color * (d_ * d2) +
-				tri.points[2].color * (d_ * d3);
+	COLOR res = tri.colors[0] * (d_ * d1) +
+				tri.colors[1] * (d_ * d2) +
+				tri.colors[2] * (d_ * d3);
 	return res;
+}
+
+COLOR INTERPOLATE::getColor(TRIANGLE& tri, COLOR& c1, COLOR& c2, COLOR& c3, V3& pos) {
+	float d1 = 1.0f / (pos - tri.points[0]).length();
+	float d2 = 1.0f / (pos - tri.points[1]).length();
+	float d3 = 1.0f / (pos - tri.points[2]).length();
+	float d_ = 1.0f / (d1 + d2 + d3);
+	COLOR res = c1 * (d_ * d1) + c2 * (d_ * d2) + c3 * (d_ * d3);
+	return res;
+}
+
+TEXTURE::TEXTURE() {}
+
+TEXTURE::TEXTURE(char* fName) {
+	TIFF* in = TIFFOpen(fName, "r");
+	if (in == NULL) {
+		cout << fName << " could not be opened\n";
+		return;
+	}
+
+	TIFFGetField(in, TIFFTAG_IMAGEWIDTH, &w);
+	TIFFGetField(in, TIFFTAG_IMAGELENGTH, &h);
+	texture.resize(h, vector<COLOR>(w, 0));
+
+	U32* temp = new U32[w * h];
+	if (!TIFFReadRGBAImage(in, w, h, temp, 0)) {
+		cout << "failed to load\n";
+		return;
+	}
+
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			texture[i][j] = COLOR(temp[i * w + j]);
+		}
+	}
+
+	cout << "Loaded texture with size: " << w << " x " << h << '\n';
+	TIFFClose(in);
+}
+
+void TEXTURE::transform(bool transposed, bool x_mirror, bool y_mirror) {
+	vector<vector<COLOR>> newTx;
+	if (transposed) {
+		newTx.resize(w, vector<COLOR>(h));
+	} else {
+		newTx.resize(h, vector<COLOR>(w));
+	}
+	for (int i = 0; i < w; i++) {
+		for (int j = 0; j < h; j++) {
+			int x = x_mirror ? w - 1 - i : i;
+			int y = y_mirror ? h - 1 - j : j;
+			COLOR c = texture[y][x];
+			if (transposed) {
+				newTx[i][j] = texture[y][x];
+			} else {
+				newTx[j][i] = texture[y][x];
+			}
+		}
+	}
+	texture = newTx;
+	h = newTx.size();
+	w = h == 0 ? 0 : newTx[0].size();
+}
+
+TEXTURE_META::TEXTURE_META() {}
+
+TEXTURE_META::TEXTURE_META(V3 (&pts)[3], TEXTURE* tx, int tf) {
+	V3 a = pts[0];
+	V3 b = pts[1];
+	V3 c = pts[2];
+	t[Dim::X] = a - b;
+	t[Dim::Y] = c - b;
+	t[Dim::Z] = b;
+	t.transpose();
+	t = t.inverse();
+
+	V3 t1 = V3(tx->w - 1, 0.0f, 0.0f);
+	V3 t2 = V3(0.0f, tx->h - 1, 0.0f);
+	M33 mult = M33(t1, t2, V3(0.0f, 0.0f, 1.0f));
+	mult.transpose();
+	t = mult * t;
+
+	this->tx = tx;
+	tile_factor = tf;
+	mirroring = false;
+}
+
+COLOR TEXTURE_META::proj(V3 p) {
+	V3 coord = t * p;
+	float xf = coord[Dim::X] * tile_factor;
+	float yf = coord[Dim::Y] * tile_factor;
+	
+	bool x_mirrored = ((int)round(xf) / tx->w) % 2;
+	bool y_mirrored = ((int)round(yf) / tx->h) % 2;
+
+	xf = fmodf(xf, (float)tx->w);
+	yf = fmodf(yf, (float)tx->h);
+	if (mirroring) {
+		if (x_mirrored) xf = (float)tx->w - 1.0f - xf;
+		if (y_mirrored) yf = (float)tx->h - 1.0f - yf;
+	}
+	
+	int x1 = (int)floorf(xf);
+	int y1 = (int)floorf(yf);
+	int x2 = (int)ceilf(xf);
+	int y2 = (int)ceilf(yf);
+	float dx = xf - (float)x1;
+	float dy = yf - (float)y1;
+
+	return tx->get(x1, y1) * (1.0f - dx) * (1.0f - dy)
+		 + tx->get(x1, y2) * (1.0f - dx) * dy
+		 + tx->get(x2, y1) * dx * (1.0f - dy)
+		 + tx->get(x2, y2) * dx * dy;
 }
 
 SPHERE::SPHERE() {}
@@ -97,17 +219,21 @@ SEGMENT::SEGMENT(SPHERE start, SPHERE end, U32 width) : SEGMENT(start, end) {
 }
 
 TRIANGLE::TRIANGLE() {
-	this->width = 8;
+	phong_exp = 50.0f;
+	width = 8U;
 }
 
-TRIANGLE::TRIANGLE(vector<SPHERE> points) : TRIANGLE() {
+TRIANGLE::TRIANGLE(vector<V3> points) : TRIANGLE() {
 	this->points[0] = points[0];
 	this->points[1] = points[1];
 	this->points[2] = points[2];
+	norm = (points[1] - points[0]) ^ (points[2] - points[0]);
+	norm.normalize();
+	tm = nullptr;
 }
 
-TRIANGLE::TRIANGLE(vector<SPHERE> points, U32 width) : TRIANGLE(points) {
-	this->width = width;
+TRIANGLE::TRIANGLE(vector<V3> points, TEXTURE_META* tm) : TRIANGLE(points) {
+	this->tm = tm;
 }
 
 MESH::MESH() {
@@ -124,61 +250,95 @@ MESH::MESH(vector<TRIANGLE> tris, bool fill) : MESH(tris) {
 	this->fill = fill;
 }
 
+MESH::MESH(vector<TRIANGLE> tris, bool fill, float phong_exp) : MESH(tris, fill) {
+	for (TRIANGLE& tri : tris) {
+		tri.phong_exp = phong_exp;
+	}
+}
+
+void MESH::add_tiling(float inc) {
+	for (int i = 0; i < triangles.size(); i += 2) {
+		triangles[i].tm->tile_factor += inc;
+	}
+}
+
+void MESH::add_mirroring(bool m) {
+	for (int i = 0; i < triangles.size(); i += 2) {
+		triangles[i].tm->mirroring = m;
+	}
+}
+
 void MESH::add_triangle(TRIANGLE tri) {
-	if (num_triangles >= MESH_TRI_CAPACITY) return;
+	V3& p1 = tri.points[0];
+	V3& p2 = tri.points[1];
+	V3& p3 = tri.points[2];
 
-	V3& p1 = tri.points[0].point;
-	V3& p2 = tri.points[1].point;
-	V3& p3 = tri.points[2].point;
+	vector<int> temp = { -1, -1, -1 };
+	edge_connectivity.push_back(temp);
+	vector<int>& ec = edge_connectivity.back();
 
-	edge_connectivity[num_triangles][0] = -1;
-	edge_connectivity[num_triangles][1] = -1;
-	edge_connectivity[num_triangles][2] = -1;
-
-	for (int i = 0; i < num_triangles; i++) {
-		V3& t1 = triangles[i].points[0].point;
-		V3& t2 = triangles[i].points[1].point;
+	for (int i = 0; i < triangles.size(); i++) {
+		V3& t1 = triangles[i].points[0];
+		V3& t2 = triangles[i].points[1];
 		if ((p1 == t1 || p1 == t2) && (p2 == t1 || p2 == t2)) {
-			edge_connectivity[num_triangles][0] = i;
+			ec[0] = i;
 			break;
 		}
 	}
-	for (int i = 0; i < num_triangles; i++) {
-		V3& t2 = triangles[i].points[1].point;
-		V3& t3 = triangles[i].points[2].point;
+	for (int i = 0; i < triangles.size(); i++) {
+		V3& t2 = triangles[i].points[1];
+		V3& t3 = triangles[i].points[2];
 		if ((p2 == t2 || p2 == t3) && (p3 == t2 || p3 == t3)) {
-			edge_connectivity[num_triangles][1] = i;
+			ec[1] = i;
 			break;
 		}
 	}
-	for (int i = 0; i < num_triangles; i++) {
-		V3& t1 = triangles[i].points[0].point;
-		V3& t3 = triangles[i].points[2].point;
+	for (int i = 0; i < triangles.size(); i++) {
+		V3& t1 = triangles[i].points[0];
+		V3& t3 = triangles[i].points[2];
 		if ((p3 == t3 || p3 == t1) && (p1 == t3 || p1 == t1)) {
-			edge_connectivity[num_triangles][2] = i;
+			ec[2] = i;
 			break;
 		}
 	}
 
-	triangles[num_triangles++] = tri;
+	triangles.push_back(tri);
+}
+
+void MESH::fix_normals() {
+	V3 center = get_center();
+	for (int i = 0; i < triangles.size(); i++) {
+		TRIANGLE& tri = triangles[i];
+		V3 tri_center = (tri.points[0] + tri.points[1] + tri.points[2]);
+		tri_center /= 3.0f;
+		V3 delta = tri_center - center;
+		if (delta * tri.norm < 0.0f) // angle is obtuse
+			tri.norm *= -1.0f;
+	}
+}
+
+void MESH::set_phong_exp(float exp) {
+	for (int i = 0; i < triangles.size(); i++) {
+		triangles[i].phong_exp = exp;
+	}
 }
 
 V3 MESH::get_center() {
 	V3 sum = V3(0.0f, 0.0f, 0.0f);
-	if (num_triangles == 0) return sum;
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			sum += p.point;
+	if (triangles.size() == 0) return sum;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
+			sum += v;
 		}
 	}
-	V3 res = sum / ((float) num_triangles * 3.0f);
+	V3 res = sum / ((float) triangles.size() * 3.0f);
 	return res;
 }
 
 void MESH::translate(V3 tran) {
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			p.point += tran;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
+			v += tran;
 		}
 	}
 }
@@ -190,20 +350,19 @@ void MESH::position(V3 pos) {
 
 void MESH::scale(float s) {
 	V3 center = get_center();
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			V3 delta = p.point - center;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
+			V3 delta = v - center;
 			V3 scaled = delta * s;
-			p.point = scaled + center;
+			v = scaled + center;
 		}
 	}
 }
 
 void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
 	M33 total_rotation = M33::get_rotation_matrix(axis1, axis2, alpha);
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			V3& v = p.point;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
 			v -= axis1;
 			v = total_rotation * v;
 			v += axis1;
@@ -214,50 +373,49 @@ void MESH::rotate(V3 axis1, V3 axis2, float alpha) {
 float MESH::avg_dist_from_center() {
 	V3 c = get_center();
 	float total_dist = 0.0f;
-	if (num_triangles == 0) return total_dist;
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			V3& v = p.point;
+	if (triangles.size() == 0) return total_dist;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
 			V3 delta = v - c;
 			total_dist += delta.length();
 		}
 	}
-	return total_dist / (float) (num_triangles * 3);
+	return total_dist / (float) (triangles.size() * 3);
 }
 
 void MESH::spherical_interpolation(float t, float res) {
 	// break down big triangles
-	for (int i = 0; i < num_triangles; i++) {
-		SPHERE& s1 = triangles[i].points[0];
-		SPHERE& s2 = triangles[i].points[1];
-		SPHERE& s3 = triangles[i].points[2];
-		float d1 = (s1.point - s2.point).length();
-		float d2 = (s1.point - s3.point).length();
-		float d3 = (s2.point - s3.point).length();
+	for (int i = 0; i < triangles.size(); i++) {
+		V3& s1 = triangles[i].points[0];
+		V3& s2 = triangles[i].points[1];
+		V3& s3 = triangles[i].points[2];
+		float d1 = (s1 - s2).length();
+		float d2 = (s1 - s3).length();
+		float d3 = (s2 - s3).length();
 		float mx = max3(d1, d2, d3);
 		if (mx < res) continue;
 		if (mx == d1) {
-			SPHERE inter = SPHERE((s1.point + s2.point) * 0.5f);
+			V3 inter = (s1 + s2) * 0.5f;
 			add_triangle(TRIANGLE({ s1, inter, s3 }));
 			s1 = inter; // inter, 2, 3
 		}
 		else if (mx == d2) {
-			SPHERE inter = SPHERE((s1.point + s3.point) * 0.5f);
+			V3 inter = (s1 + s3) * 0.5f;
 			add_triangle(TRIANGLE({ s1, inter, s2 }));
 			s1 = inter; // inter, 2, 3
 		}
 		else {
-			SPHERE inter = SPHERE((s2.point + s3.point) * 0.5f);
+			V3 inter = (s2 + s3) * 0.5f;
 			add_triangle(TRIANGLE({ s1, inter, s3 }));
 			s3 = inter; // 1, 2, inter
 		}
 	}
+	fix_normals();
 	// round triangles.
 	float avg_dist = avg_dist_from_center();
 	V3 c = get_center();
-	for (int i = 0; i < num_triangles; i++) {
-		for (SPHERE& p : triangles[i].points) {
-			V3& v = p.point;
+	for (int i = 0; i < triangles.size(); i++) {
+		for (V3& v : triangles[i].points) {
 			V3 delta = v - c;
 			float len = delta.length();
 			float dist = (len - avg_dist) * t;
@@ -267,18 +425,18 @@ void MESH::spherical_interpolation(float t, float res) {
 	}
 }
 
-void MESH::setAsBox(V3 center, float radius) {
-	num_triangles = 0;
+void MESH::setAsBox(V3 center, TEXTURE* tx, float w, float h, float l) {
+	triangles.clear();
 
-	auto A = SPHERE(V3(1.0f, 1.0f, 1.0f));
-	auto B = SPHERE(V3(1.0f, -1.0f, 1.0f), COLOR(255, 255, 0));
-	auto C = SPHERE(V3(-1.0f, -1.0f, 1.0f));
-	auto D = SPHERE(V3(-1.0f, 1.0f, 1.0f), COLOR(255, 255, 0));
+	auto A = V3(0, 0, 0);
+	auto B = V3(w, 0, 0);
+	auto C = V3(w, h, 0);
+	auto D = V3(0, h, 0);
 
-	auto E = SPHERE(V3(1.0f, 1.0f, -1.0f), COLOR(255, 255, 0));
-	auto F = SPHERE(V3(1.0f, -1.0f, -1.0f));
-	auto G = SPHERE(V3(-1.0f, -1.0f, -1.0f), COLOR(255, 255, 0));
-	auto H = SPHERE(V3(-1.0f, 1.0f, -1.0f));
+	auto E = V3(0, 0, l);
+	auto F = V3(w, 0, l);
+	auto G = V3(w, h, l);
+	auto H = V3(0, h, l);
 
 	*this = MESH({
 		// ABCD
@@ -300,66 +458,75 @@ void MESH::setAsBox(V3 center, float radius) {
 		TRIANGLE({ C, B, F }),
 		TRIANGLE({ C, G, F })
 	});
-	scale(radius);
 	position(center);
+
+	for (int i = 0; i < this->triangles.size(); i += 2) {
+		TRIANGLE& t1 = this->triangles[i];
+		TRIANGLE& t2 = this->triangles[i + 1];
+		t1.tm = new TEXTURE_META(t1.points, tx, 1);
+		t2.tm = t1.tm;
+	}
 }
 
-void MESH::setAsSphere(V3 center, U32 hres, float radius) {
-	num_triangles = 0;
+void MESH::setAsSphere(V3 center, U32 hres, float radius, TEXTURE* tx) {
+	triangles.clear();
 	hres = min(hres, 20U);
 
-	V3 vec = V3(0.0f, 0.0f, 1.0f);
+	V3 vec = V3(0.0f, 0.0f, radius);
 	U32 vres = hres;
 	float alpha = 2.0f * (float) PI / (float) hres;
 	M33 rot1 = M33(Dim::Y, alpha);
 	M33 rot2 = M33(Dim::X, -alpha);
 	M33 rot(1);
 
-	vector<vector<SPHERE>> vecs(vres, vector<SPHERE>(hres));
+	vector<vector<V3>> vecs(vres, vector<V3>(hres));
 	for (U32 theta = 0; theta < vres; theta++) {
 		for (U32 phi = 0; phi < hres; phi++) {
-			vecs[theta][phi] = SPHERE(vec);
+			vecs[theta][phi] = vec;
 			vec = rot1 * vec;
-			vec.normalize();
 		}
 		vec = rot2 * vec;
-		vec.normalize();
 	}
 
 	for (U32 a = 0; a < vres; a++) {
 		for (U32 b = 0; b < hres / 2; b++) {
 			U32 i = (a + 1U) % hres;
 			U32 j = (b + 1U) % hres;
-			SPHERE& v1 = vecs[a][b];
-			SPHERE& v2 = vecs[i][b];
-			SPHERE& v3 = vecs[a][j];
-			SPHERE& v4 = vecs[i][j];
-			add_triangle(TRIANGLE({ v1, v2, v4 }));
-			add_triangle(TRIANGLE({ v1, v3, v4 }));
+			V3 v1 = vecs[a][b];
+			v1 += center;
+			V3 v2 = vecs[i][b];
+			v2 += center;
+			V3 v3 = vecs[a][j];
+			v3 += center;
+			V3 v4 = vecs[i][j];
+			v4 += center;
+			TEXTURE_META* tm = new TEXTURE_META();
+			TRIANGLE t1 = TRIANGLE({ v1, v2, v4 }, tm);
+			*tm = TEXTURE_META(t1.points, tx, 1);
+			add_triangle(t1);
+			add_triangle(TRIANGLE({ v1, v3, v4 }, tm));
 		}
 	}
-	position(center);
-	scale(radius);
 }
 
 void MESH::setAsCylinder(V3 center, U32 res, float height, float rad) {
-	num_triangles = 0;
+	triangles.clear();
 	res = min(res, 200U);
 
 	float rad_inc = rad / (float) res;
 	float alpha = 2.0f * (float)PI / (float)res;
 	M33 rot = M33(Dim::Y, alpha);
 
-	vector<SPHERE> upper_vecs(res);
-	vector<SPHERE> lower_vecs(res);
+	vector<V3> upper_vecs(res);
+	vector<V3> lower_vecs(res);
 	V3 vec = V3(rad, 0.0, 0.0);
 	for (U32 theta = 0; theta < res; theta++) {
 		V3 upper = vec;
 		V3 lower = vec;
 		upper[Dim::Y] += height * 0.5f;
 		lower[Dim::Y] -= height * 0.5f;
-		upper_vecs[theta] = SPHERE(upper);
-		lower_vecs[theta] = SPHERE(lower);
+		upper_vecs[theta] = upper;
+		lower_vecs[theta] = lower;
 		vec = rot * vec;
 	}
 
@@ -367,10 +534,10 @@ void MESH::setAsCylinder(V3 center, U32 res, float height, float rad) {
 	V3 lower_center = V3(0.0f, height * -0.5f, 0.0f);
 	for (U32 a = 0; a < res; a++) {
 		U32 i = (a + 1U) % res;
-		SPHERE& v1 = lower_vecs[a];
-		SPHERE& v2 = lower_vecs[i];
-		SPHERE& v3 = upper_vecs[a];
-		SPHERE& v4 = upper_vecs[i];
+		V3& v1 = lower_vecs[a];
+		V3& v2 = lower_vecs[i];
+		V3& v3 = upper_vecs[a];
+		V3& v4 = upper_vecs[i];
 		add_triangle(TRIANGLE({ v1, v2, v4 }));
 		add_triangle(TRIANGLE({ v1, v3, v4 }));
 		add_triangle(TRIANGLE({ v3, v4, upper_center }));
@@ -379,7 +546,27 @@ void MESH::setAsCylinder(V3 center, U32 res, float height, float rad) {
 	position(center);
 }
 
-// load a txt file
+void MESH::setAsFloor(TEXTURE* tx) {
+	triangles.clear();
+	float y = -50.0f;
+	float x = -100.0f;
+	float z = -400.0f;
+	TEXTURE_META* tm = new TEXTURE_META();
+	TRIANGLE t1 = TRIANGLE({
+		V3(x, y, z),
+		V3(x + 200.0f, y, z),
+		V3(x + 200.0f, y, z + 200.0f)
+	}, tm);
+	*tm = TEXTURE_META(t1.points, tx, 1);
+	TRIANGLE t2 = TRIANGLE({
+		V3(x + 200.0f, y, z + 200.0f),
+		V3(x, y, z + 200.0f),
+		V3(x, y, z)		
+	}, tm);
+	*this = MESH({ t1, t2 });
+	fill = true;
+}
+
 void MESH::LoadBin() {
 	cout << "Loading Mesh Bin...\n";
 	ifstream in(INPUT_BIN);
@@ -388,43 +575,79 @@ void MESH::LoadBin() {
 }
 
 void MESH::Load334Bin() {
-	ifstream ifs(INPUT_BIN, ios::binary);
+	ifstream ifs("teapot1K.bin", ios::binary);
+	if (ifs.fail()) {
+		cerr << "INFO: cannot open file: ";
+		return;
+	}
 
 	int vertsN;
-	ifs.read((char*) &vertsN, sizeof(int));
+	ifs.read((char*)&vertsN, sizeof(int));
 
 	char yn;
-	ifs.read(&yn, 1);
-	bool cols = yn == 'y';
-	ifs.read(&yn, 1);
-	bool norms = yn == 'y';
-	ifs.read(&yn, 1);
-	bool tcs = yn == 'y';
+	ifs.read(&yn, 1); // always xyz
+	if (yn != 'y') return; // :(
 
 	V3* verts = new V3[vertsN];
-	ifs.read((char*)verts, vertsN * 3 * sizeof(float));
-	
-	if (cols) {
-		V3* cols = new V3[vertsN];
-		ifs.read((char*)cols, vertsN * 3 * sizeof(float));
-	}
-	if (norms) {
-		V3* normals = new V3[vertsN];
-		ifs.read((char*)normals, vertsN * 3 * sizeof(float));
-	}
-	if (tcs) {
-		float* tcs = new float[vertsN * 2];
-		ifs.read((char*)tcs, vertsN * 2 * sizeof(float));
-	}
+	V3* cols = new V3[vertsN];
+	V3* normals = new V3[vertsN];
+	float* tcs = new float[vertsN * 2]; // don't have texture coordinates for now
 
-	ifs.read((char*) &num_triangles, sizeof(int));
-	float* tris = new float[num_triangles * 3];
-	ifs.read((char*) tris, num_triangles * 3 * sizeof(float)); // read tiangles
+	ifs.read(&yn, 1); // cols 3 floats
+	ifs.read(&yn, 1); // normals 3 floats
+	ifs.read(&yn, 1); // texture coordinates 2 floats
+
+	ifs.read((char*)verts, vertsN * 3 * sizeof(float)); // load verts
+	ifs.read((char*)cols, vertsN * 3 * sizeof(float)); // load cols
+	ifs.read((char*)normals, vertsN * 3 * sizeof(float)); // load normals
+	ifs.read((char*)tcs, vertsN * 2 * sizeof(float)); // load texture coordinates
+		
+	int trisN;
+	ifs.read((char*)&trisN, sizeof(int));
+	
+	unsigned int* tris = new unsigned int[trisN * 3];
+	ifs.read((char*)tris, trisN * 3 * sizeof(unsigned int)); // read triangles
 
 	ifs.close();
+
+	for (int i = 0; i < vertsN; i++) {
+		cols[i] *= 255.0f;
+	}
+
+	cout << vertsN << " : " << trisN << "\n";
+
+	MESH m;
+	for (int i = 0; i < trisN; i++) {
+		int a = tris[3 * i];
+		int b = tris[3 * i + 1];
+		int c = tris[3 * i + 2];
+
+		TRIANGLE tri = TRIANGLE();
+		tri.points[0] = verts[a];
+		tri.points[1] = verts[b];
+		tri.points[2] = verts[c];
+		if (cols) {
+			tri.colors[0] = COLOR(cols[a][Dim::X], cols[a][Dim::Y], cols[a][Dim::Z]);
+			tri.colors[1] = COLOR(cols[b][Dim::X], cols[b][Dim::Y], cols[b][Dim::Z]);
+			tri.colors[2] = COLOR(cols[c][Dim::X], cols[c][Dim::Y], cols[c][Dim::Z]);
+		}
+		m.add_triangle(tri);
+		m.triangles.back().norms = { normals[a], normals[b], normals[c] };
+		V3 norm = normals[a] + normals[b] + normals[c];
+		norm.normalize();
+		m.triangles.back().norm = norm;
+	}
+	m.fill = true;
+	m.translate(V3(0, 0, -40.0f));
+	*this = m;
+
+	free(verts); verts = nullptr;
+	free(cols); cols = nullptr;
+	free(normals); normals = nullptr;
+	free(tcs); tcs = nullptr;
+	free(tris); tris = nullptr;
 }
 
-// save as txt file
 void MESH::SaveAsBin() {
 	cout << "Saving Mesh Bin...\n";
 	ofstream out(OUTPUT_BIN);
@@ -436,91 +659,146 @@ LIGHT::LIGHT() {}
 
 LIGHT::LIGHT(V3 src, V3 direct, COLOR sh, float _a) {
 	source = src;
+	shade = sh;
+	a = min(_a * 0.5f, (float)PI * 0.5f - 0.1f);
+	cot_a = 1.0f / tan(a);
+
 	direction = direct;
 	direction.normalize();
-	shade = sh;
-	a = _a;
+	dir_rot = M33(1);
+	V3 axis = direction;
+	if (axis[Dim::Y] != 0.0f) {
+		float xy_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[1] * axis[1]);
+		float xy_cos_theta = axis[0] * xy_len_inverse;
+		float xy_sin_theta = axis[1] * xy_len_inverse;
+		M33 xy_rotation = M33(Dim::Z, -xy_sin_theta, xy_cos_theta);
+		M33 xy_rotation_inv = M33(Dim::Z, xy_sin_theta, xy_cos_theta);
+		// perform xy rotation
+		axis *= xy_rotation;
+		dir_rot *= xy_rotation;
+	}
+	if (axis[Dim::X] != 0.0f) {
+		// xz rotation to eliminate axis z dimension
+		float xz_len_inverse = 1.0f / sqrt(axis[0] * axis[0] + axis[2] * axis[2]);
+		float xz_cos_theta = axis[0] * xz_len_inverse;
+		float xz_sin_theta = axis[2] * xz_len_inverse;
 
-	float cos_a = cos(DEG_TO_RAD(a)); // = direct.mag / edge
+		M33 xz_rotation = M33(Dim::Y, xz_sin_theta, xz_cos_theta);
+		M33 xz_rotation_inv = M33(Dim::Y, -xz_sin_theta, xz_cos_theta);
+		dir_rot *= xz_rotation;
+	}
+	dir_rot *= cot_a;
+	dir_rot[Dim::Y] *= LBS_Scalar;
+	dir_rot[Dim::Z] *= LBS_Scalar;
+	dir_rot_inv = dir_rot.inverse();
+
+	float cos_a = cos(a); // = direct.mag / edge
 	thresold = cos_a * cos_a; // (direction * edge)^2 / (|direction||edge|)^2
 }
 
-bool LIGHT::is_subject(V3& point) {
-	// angle check
+bool LIGHT::proj(V3& point, V3& res) {
 	V3 delta = point - source;
 	float dot = delta * direction;
-	if (dot < 0.0f) return false; // angle delta + light dir is acute
-	// norm check
-	float cos_sq = (dot * dot) / (delta * delta);
-	return cos_sq >= thresold; // falls within the fov
+	// acute angle check
+	if (dot < 0.0f) return false;
+	// fov check
+	if (dot * dot < thresold * (delta * delta)) return false;
+	// project to shadow buffer (yz unit circle)
+	V3 proj = dir_rot * delta;
+	const float x_inv = 1.0f / proj[Dim::X];
+	// set result
+	res = V3(
+		round(proj[Dim::Y] * x_inv + LBS_Scalar),
+		round(proj[Dim::Z] * x_inv + LBS_Scalar),
+		proj[Dim::X] // distance from light source just after rotation
+	);
+	return true;
 }
 
-float LIGHT::offset_lighting(V3& point, V3& norm, float phong_exp) {
-	if (!is_subject(point)) return 0.0f; // not hit by light -> ambient lighting
-	else return 1.0f;
+V3 LIGHT::unproj(V3& res) {
+	V3 temp = V3(
+		res[Dim::Z],
+		res[Dim::X] * res[Dim::Z] - LBS_Scalar,
+		res[Dim::Y] * res[Dim::Z] - LBS_Scalar
+	);
+	V3 delta = dir_rot_inv * temp;
+	return delta + source;
+}
+
+bool LIGHT::is_subject(V3& point, vector<vector<float>>& l_buffer) {
+	V3 res;
+	if (!proj(point, res)) return false;
+	int x = (int)res[Dim::X];
+	int y = (int)res[Dim::Y];
+	float dist = res[Dim::Z];
+	// return logic
+	return dist <= l_buffer[x][y] * SM_TOLERANCE;
+}
+
+void LIGHT::check_subject_proj(V3& proj, vector<vector<float>>& l_buffer) {
+	int x = (int)proj[Dim::X];
+	int y = (int)proj[Dim::Y];
+	float dist = proj[Dim::Z];
+	l_buffer[x][y] = min(l_buffer[x][y], dist);
+}
+
+void LIGHT::check_subject(V3& point, vector<vector<float>>& l_buffer) {
+	// angle check
+	V3 res;
+	if (!proj(point, res)) return;
+	int x = (int) res[Dim::X];
+	int y = (int) res[Dim::Y];
+	float dist = res[Dim::Z];
+	l_buffer[x][y] = min(l_buffer[x][y], dist);
+}
+
+float LIGHT::offset_lighting(V3& point, V3& norm, float phong_exp, vector<vector<float>>& l_buffer) {
+	norm.normalize();
+	if (!is_subject(point, l_buffer)) return 0.0f; // not hit by light -> ambient lighting
 	// rotate point_to_light PI radian about normal using projection
-	//V3 point_to_light = source - point;
-	//float dot = norm * point_to_light;
-	//float proj = (dot) / (norm * norm);
-	//V3 reflected_light = norm * (proj * 2.0f) - point_to_light;
-	//// use phong's method
-	//V3 eye_vec = point - scene->ppc->C;
-	//float k_diffuse = max(dot, 0.0f);
-	//float k_specular = pow(eye_vec * reflected_light, phong_exp);
-	//if (k_diffuse > 1.0e6f) {
-	//	cout << ":{";
-	//}
-	//return K_AMBIENT + (1.0f - K_AMBIENT) * k_diffuse + k_specular;
+	V3 point_to_light = source - point;
+	point_to_light.normalize();
+	float dot = norm * point_to_light;
+	V3 reflected_light = norm * (dot * 2.0f) - point_to_light;
+	reflected_light.normalize();
+	// use phong's method
+	V3 eye_vec = scene->ppc->C - point;
+	eye_vec.normalize();
+	float k_diffuse = max(dot, 0.0f);
+	//cout << phong_exp << '\n';
+	float k_specular = pow(eye_vec * reflected_light, phong_exp);
+	return k_specular + (1.0f - scene->ambient) * k_diffuse;
 }
 
 GEOMETRY::GEOMETRY() {}
 
 GEOMETRY::GEOMETRY(vector<GEOMETRY>& geos) {
 	for (GEOMETRY& geo : geos) {
-		for (int i = 0; i < geo.num_spheres; i++) {
-			add_sphere(geo.spheres[i]);
-		}
-		for (int i = 0; i < geo.num_segments; i++) {
-			add_segment(geo.segments[i]);
-		}
-		for (int i = 0; i < geo.num_triangles; i++) {
-			add_triangle(geo.triangles[i]);
-		}
-		for (int i = 0; i < geo.num_meshes; i++) {
-			add_mesh(geo.meshes[i]);
-		}
-		for (int i = 0; i < geo.num_lights; i++) {
-			add_light(geo.lights[i]);
-		}
+		for (int i = 0; i < geo.spheres.size(); i++)
+			spheres.push_back(geo.spheres[i]);
+		for (int i = 0; i < geo.segments.size(); i++)
+			segments.push_back(geo.segments[i]);
+		for (int i = 0; i < geo.triangles.size(); i++)
+			triangles.push_back(geo.triangles[i]);
+		for (int i = 0; i < geo.lights.size(); i++)
+			lights.push_back(geo.lights[i]);
 	}
 }
 
-GEOMETRY::GEOMETRY(vector<SPHERE> spheres,
-				   vector<SEGMENT> segments,
-				   vector<TRIANGLE> triangles,
-				   vector<MESH> meshes,
-				   vector<LIGHT> lights) {
-	for (SPHERE& p : spheres) add_sphere(p);
-	for (SEGMENT& s : segments) add_segment(s);
-	for (TRIANGLE& t : triangles) add_triangle(t);
-	for (MESH& m : meshes) add_mesh(m);
-	for (LIGHT& l : lights) add_light(l);
-}
-
 void GEOMETRY::add_axis() {
-	add_segment(
+	segments.push_back(
 		SEGMENT(
 			SPHERE(V3(-200, 0, 0)),
 			SPHERE(V3(200, 0, 0))
 		)
 	);
-	add_segment(
+	segments.push_back(
 		SEGMENT(
 			SPHERE(V3(0, -200, 0)),
 			SPHERE(V3(0, 200, 0))
 		)
 	);
-	add_segment(
+	segments.push_back(
 		SEGMENT(
 			SPHERE(V3(0, 0, -200)),
 			SPHERE(V3(0, 0, 200))
@@ -528,29 +806,35 @@ void GEOMETRY::add_axis() {
 	);
 }
 
-void GEOMETRY::add_sphere(SPHERE sph) {
-	if (num_spheres < SPH_CAPACITY)
-		spheres[num_spheres++] = sph;
-}
+void GEOMETRY::add_camera(PPC ppc) {
+	V3 vd = ppc.GetVD();
+	V3 c1 = ppc.C + ppc.c;
+	
+	V3 c2 = ppc.c;
+	c2.rotate(vd, PI);
+	c2 += ppc.C;
 
-void GEOMETRY::add_segment(SEGMENT seg) {
-	if (num_segments < SEG_CAPACITY)
-		segments[num_segments++] = seg;
-}
+	V3 c3 = ppc.c;
+	c3.rotate(vd, -1.287f);
+	c3 += ppc.C;
 
-void GEOMETRY::add_triangle(TRIANGLE tri) {
-	if (num_triangles < TRI_CAPACITY)
-		triangles[num_triangles++] = tri;
-}
+	V3 c4 = ppc.c;
+	c4.rotate(vd, -1.287f-PI);
+	c4 += ppc.C;
 
-void GEOMETRY::add_mesh(MESH mesh) {
-	if (num_meshes < MESH_CAPACITY)
-		meshes[num_meshes++] = mesh;
-}
-
-void GEOMETRY::add_light(LIGHT li) {
-	if (num_lights < MESH_CAPACITY)
-		lights[num_lights++] = li;
+	V3 a1 = c1 + ppc.a * 640.0f;
+	V3 a2 = c2 - ppc.a * 640.0f;
+	V3 b1 = a1 + ppc.b * 480.0f;
+	V3 b2 = a2 - ppc.b * 480.0f;
+	spheres.push_back(SPHERE(ppc.C, COLOR(255, 0, 0), 30.0f));
+	segments.push_back(SEGMENT(SPHERE(ppc.C), SPHERE(c1)));
+	segments.push_back(SEGMENT(SPHERE(ppc.C), SPHERE(c2)));
+	segments.push_back(SEGMENT(SPHERE(ppc.C), SPHERE(c3)));
+	segments.push_back(SEGMENT(SPHERE(ppc.C), SPHERE(c4)));
+	segments.push_back(SEGMENT(SPHERE(c1), SPHERE(a1)));
+	segments.push_back(SEGMENT(SPHERE(c2), SPHERE(a2)));
+	segments.push_back(SEGMENT(SPHERE(a1), SPHERE(b1)));
+	segments.push_back(SEGMENT(SPHERE(a2), SPHERE(b2)));
 }
 
 COMPUTED_GEOMETRY::COMPUTED_GEOMETRY() {
@@ -559,21 +843,22 @@ COMPUTED_GEOMETRY::COMPUTED_GEOMETRY() {
 
 // rotate + copy geometry
 void COMPUTED_GEOMETRY::recompute_geometry() {
-	num_segments = 0;
-	num_spheres = 0;
-	num_triangles = 0;
-	num_lights = 0;
+	segments_mesh_og.clear();
+	segments.clear();
+	spheres.clear();
+	triangles.clear();
+	lights.clear();
 	GEOMETRY& geometry = scene->geometry;
 
-	for (int i = 0; i < geometry.num_segments; i++)
+	for (int i = 0; i < geometry.segments.size(); i++)
 		add_segment(geometry.segments[i]);
-	for (int i = 0; i < geometry.num_triangles; i++)
+	for (int i = 0; i < geometry.triangles.size(); i++)
 		add_triangle(geometry.triangles[i]);
-	for (int i = 0; i < geometry.num_spheres; i++)
+	for (int i = 0; i < geometry.spheres.size(); i++)
 		add_sphere(geometry.spheres[i]);
-	for (int i = 0; i < geometry.num_meshes; i++)
+	for (int i = 0; i < geometry.meshes.size(); i++)
 		add_mesh(geometry.meshes[i]);
-	for (int i = 0; i < geometry.num_lights; i++)
+	for (int i = 0; i < geometry.lights.size(); i++)
 		add_light(geometry.lights[i]);
 }
 
@@ -586,88 +871,80 @@ bool COMPUTED_GEOMETRY::transform(V3& v3, V3& new_v3) {
 }
 
 void COMPUTED_GEOMETRY::add_sphere(SPHERE& sph) {
-	SPHERE& new_sph = spheres[num_spheres];
+	SPHERE new_sph = sph;
 	if (transform(sph.point, new_sph.point)) {
-		new_sph.color = sph.color;
-		new_sph.width = sph.width;
-		num_spheres++; // save new sphere
+		spheres.push_back(new_sph);
 	}
 }
 
 void COMPUTED_GEOMETRY::add_segment(SEGMENT& seg) {
-	SEGMENT& new_seg = segments[num_segments];
+	SEGMENT new_seg = seg;
 	if (transform(seg.start.point, new_seg.start.point) &&
 		transform(seg.end.point, new_seg.end.point)) {
-
-		new_seg.start.color = seg.start.color;
-		new_seg.start.width = seg.start.width;
-		new_seg.end.color = seg.end.color;
-		new_seg.end.width = seg.end.width;
-		new_seg.width = seg.width;
-		num_segments++; // save new segment
+		segments.push_back(new_seg);
+		segments_og.push_back(&seg);
 	}
 }
 
 void COMPUTED_GEOMETRY::add_triangle(TRIANGLE& tri) {
-	TRIANGLE& new_tri = triangles[num_triangles];
-	if (transform(tri.points[0].point, new_tri.points[0].point) &&
-		transform(tri.points[1].point, new_tri.points[1].point) &&
-		transform(tri.points[2].point, new_tri.points[2].point)) {
-
-		new_tri.points[0].color = tri.points[0].color;
-		new_tri.points[0].width = tri.points[0].width;
-		new_tri.points[1].color = tri.points[1].color;
-		new_tri.points[1].width = tri.points[1].width;
-		new_tri.points[2].color = tri.points[2].color;
-		new_tri.points[2].width = tri.points[2].width;
-		num_triangles++; // save new triangle
+	TRIANGLE new_tri = tri;
+	V3& p1 = new_tri.points[0];
+	V3& p2 = new_tri.points[1];
+	V3& p3 = new_tri.points[2];
+	if (transform(tri.points[0], p1) &&
+		transform(tri.points[1], p2) &&
+		transform(tri.points[2], p3)) {
+		triangles.push_back(new_tri);
+		triangles_og.push_back(&tri);
 	}
 }
 
 void COMPUTED_GEOMETRY::add_mesh(MESH& mesh) {
 	if (mesh.fill) {
-		for (int i = 0; i < mesh.num_triangles; i++) {
+		for (int i = 0; i < mesh.triangles.size(); i++) {
 			add_triangle(mesh.triangles[i]);
 		}
 		return;
 	}
 	
-	for (int i = 0; i < mesh.num_triangles; i++) {
+	for (int i = 0; i < mesh.triangles.size(); i++) {
 		TRIANGLE& tri = mesh.triangles[i];
-		SPHERE p1, p2, p3;
-			
-		if (transform(tri.points[0].point, p1.point) &&
-			transform(tri.points[1].point, p2.point) &&
-			transform(tri.points[2].point, p3.point)) {
+		V3& op1 = tri.points[0];
+		V3& op2 = tri.points[1];
+		V3& op3 = tri.points[2];		
+		V3 p1 = op1, p2 = op2, p3 = op3;
 
-			p1.color = tri.points[0].color;
-			p2.color = tri.points[1].color;
-			p3.color = tri.points[2].color;
-				
-			if (mesh.edge_connectivity[i][0] == -1)
-				segments[num_segments++] = SEGMENT(p1, p2);
-			if (mesh.edge_connectivity[i][1] == -1)
-				segments[num_segments++] = SEGMENT(p2, p3);
-			if (mesh.edge_connectivity[i][2] == -1)
-				segments[num_segments++] = SEGMENT(p3, p1);
+		if (transform(op1, p1) &&
+			transform(op2, p2) &&
+			transform(op3, p3)) {
+			
+			if (mesh.edge_connectivity[i][0] == -1) {
+				segments_mesh_og.push_back(SEGMENT(op1, op2));
+				segments_og.push_back(&(segments_mesh_og.back()));
+				segments.push_back(SEGMENT(p1, p2));
+			}
+			if (mesh.edge_connectivity[i][1] == -1) {
+				segments_mesh_og.push_back(SEGMENT(op2, op3));
+				segments_og.push_back(&(segments_mesh_og.back()));
+				segments.push_back(SEGMENT(p2, p3));
+			}
+			if (mesh.edge_connectivity[i][2] == -1) {
+				segments_mesh_og.push_back(SEGMENT(op3, op1));
+				segments_og.push_back(&(segments_mesh_og.back()));
+				segments.push_back(SEGMENT(p3, p1));
+			}
 		}
 	}
 }
 
 void COMPUTED_GEOMETRY::add_light(LIGHT& li) {
-	V3 new_src;
-	V3 dir_end;
-	if (transform(li.source, new_src) &&
-		transform(li.direction, dir_end)) {
-
-		add_sphere(SPHERE(li.source, COLOR(255, 255, 255), 10));
-		add_segment(
-			SEGMENT(
-				SPHERE(li.source, COLOR(255, 255, 255)),
-				SPHERE(li.source + li.direction * 200.0f, COLOR(255, 255, 255)),
-				5
-			)
-		);
-		lights[num_lights++] = LIGHT(new_src, dir_end - new_src, li.shade, li.a);
-	}
+	SEGMENT* seg = new SEGMENT(
+		SPHERE(li.source, COLOR(255, 255, 255)),
+		SPHERE(li.source + li.direction * 50.0f, COLOR(255, 255, 255)),
+		5U
+	);
+	SPHERE* sph = new SPHERE(li.source, COLOR(255, 255, 255), 15);
+	add_sphere(*sph);
+	add_segment(*seg);
+	lights.push_back(li);
 }

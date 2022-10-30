@@ -5,7 +5,7 @@
 #include "framebuffer.hpp"
 #include "Geometry.hpp"
 
-#define FPS 10.0f
+#define FPS 30.0f
 #define TIFF_FILE_IN "name.tif" // what we read from
 #define TIFF_FILE_OUT "random.tif" // what we write to
 
@@ -18,6 +18,9 @@ public:
 	U32 w, h;
 
 	GEOMETRY geometry;
+	float phong_exp;
+	float ambient;
+	U32 sm; // lighting mode
 
 	V3 rotation_axis1;
 	V3 rotation_axis2;
@@ -29,6 +32,8 @@ public:
 
 	void LoadBinButton();
 	void SaveBinButton();
+	void TeapotButton();
+
 	
 	void RotationButton();
 	void TransitionCamera();

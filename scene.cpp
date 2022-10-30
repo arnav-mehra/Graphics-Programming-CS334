@@ -16,33 +16,75 @@ Scene::Scene() {
 	gui->show();
 	ppc = new PPC();
 
-	// ADDS BOX
-	{
-		MESH m;
-		m.setAsBox(V3(50.0f, 50.0f, -300.0f), 50.0f);
-		m.fill = true;
-		geometry.add_mesh(m);
-	}
-
-	// SPHERE WIRE FRAME
+	phong_exp = 80.0f;
+	ambient = 1.0f;
+	sm = 1U;
+	
+	// ADD 2ND LIGHT SOURCE
 	//{
-	//	MESH m;
-	//	m.setAsSphere(V3(0.0f, 0.0f, -1000.0f), 20U, 200.0f);
-	//	geometry.add_mesh(m);
+	//	V3 center = V3(20.0f, -20.0f, -50.0f);
+	//	V3 origin = V3(0.0f, 80.0f, 100.0f);
+	//	LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(50.0f));
+	//	geometry.lights.push_back(li);
 	//}
 
-	// SPHERE WIRE FRAME
-	/*{
-		MESH m;
-		m.setAsCylinder(V3(0.0f, 0.0f, -500.0f), 20U, 200.0f, 100.0f);
-		geometry.add_mesh(m);
-	}*/
+	// ADD 1ST LIGHT SOURCE
+	//{
+	//	V3 center = V3(-10.0f, 18.0f, 18.0f);
+	//	V3 origin = V3(0.0f, 60.0f, 110.0f);
+	//	LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(40.0f));
+	//	geometry.lights.push_back(li);
+	//}
 
-	// ADD LIGHT SOURCE
+	// ADD FLOOR
 	{
-		LIGHT li = LIGHT(V3(0.0f, 0.0f, -500.0f), V3(1.0f, 1.0f, 2.0f), COLOR(255, 255, 255), 10.0f);
-		geometry.add_light(li);
+		TEXTURE* tx = new TEXTURE("wood_floor.tiff");
+		MESH m;
+		m.setAsFloor(tx);
+		geometry.meshes.push_back(m);
 	}
+
+	// ADDS BOX
+	{
+		TEXTURE* tx = new TEXTURE("door.tiff");
+		tx->transform(true, false, false);
+		MESH m;
+		m.setAsBox(V3(0.0f, 0.0f, -300.0f), tx, 5.0f, 120.0f, 60.0f);
+		m.fix_normals();
+		m.fill = true;
+		geometry.meshes.push_back(m);
+	}
+
+	// ADDS BOX
+	{
+		TEXTURE* tx = new TEXTURE("mineman.tiff");
+		MESH m;
+		m.setAsBox(V3(30.0f, -40.0f, -350.0f), tx, 20.0f, 20.0f, 20.0f);
+		m.fix_normals();
+		m.fill = true;
+		geometry.meshes.push_back(m);
+	}
+
+	// SPHERE
+	{
+		TEXTURE* tx = new TEXTURE("ball.tiff");
+		MESH m;
+		m.setAsSphere(V3(80.0f, -40.0f, -300.0f), 12U, 10.0f, tx);
+		m.fix_normals();
+		m.fill = true;
+		geometry.meshes.push_back(m);
+	}
+
+	// ADD CAMERA VISUALIZATION
+	//{
+	//	PPC p;
+	//	geometry.add_camera(p);
+	//}
+
+
+
+
+	
 
 	rotation_axis1 = V3(0.0f, -1.0f, -1.0f);
 	rotation_axis2 = V3(0.0f, 1.0f, 1.0f);
@@ -71,6 +113,13 @@ void Scene::LoadBinButton() {
 	fb->redraw();
 }
 
+void Scene::TeapotButton() {
+	MESH m;
+	m.Load334Bin();
+	geometry.meshes.push_back(m);
+	fb->redraw();
+}
+
 void Scene::SaveBinButton() {
 	geometry.meshes[SEL_MESH].SaveAsBin();
 	fb->redraw();
@@ -86,31 +135,31 @@ void Scene::TransitionCamera() {
 }
 
 void Scene::LightLeft() {
-	geometry.lights[SEL_LIGHT].source[Dim::X] -= 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::X] -= 5.0f;
 	fb->redraw();
 }
 
 void Scene::LightRight() {
-	geometry.lights[SEL_LIGHT].source[Dim::X] += 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::X] += 5.0f;
 	fb->redraw();
 }
 
 void Scene::LightUp() {
-	geometry.lights[SEL_LIGHT].source[Dim::Y] -= 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::Y] -= 5.0f;
 	fb->redraw();
 }
 
 void Scene::LightDown() {
-	geometry.lights[SEL_LIGHT].source[Dim::Y] += 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::Y] += 5.0f;
 	fb->redraw();
 }
 
 void Scene::LightFront() {
-	geometry.lights[SEL_LIGHT].source[Dim::Z] += 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::Z] += 5.0f;
 	fb->redraw();
 }
 
 void Scene::LightBack() {
-	geometry.lights[SEL_LIGHT].source[Dim::Z] -= 0.1f;
+	geometry.lights[SEL_LIGHT].source[Dim::Z] -= 5.0f;
 	fb->redraw();
 }
