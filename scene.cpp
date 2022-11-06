@@ -16,35 +16,51 @@ Scene::Scene() {
 	gui->show();
 	ppc = new PPC();
 
-	phong_exp = 80.0f;
+	phong_exp = 1.0f;
 	ambient = 1.0f;
 	sm = 1U;
 	
-	// ADD 2ND LIGHT SOURCE
+	// REQS
 	//{
-	//	V3 center = V3(20.0f, -20.0f, -50.0f);
-	//	V3 origin = V3(0.0f, 80.0f, 100.0f);
-	//	LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(50.0f));
-	//	geometry.lights.push_back(li);
+	//	bd = new BACKDROP("uffizi_cross.tiff");
 	//}
 
-	// ADD 1ST LIGHT SOURCE
+	// EXTRA_CREDIT
 	//{
-	//	V3 center = V3(-10.0f, 18.0f, 18.0f);
-	//	V3 origin = V3(0.0f, 60.0f, 110.0f);
-	//	LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(40.0f));
-	//	geometry.lights.push_back(li);
+	//	bd = new BACKDROP("panarama.tiff");
+	//	MESH m;
+	//	m.setAsGlass();
+	//	m.fill = true;
+	//	geometry.meshes.push_back(m);
 	//}
-
-	// ADD FLOOR
-	{
-		TEXTURE* tx = new TEXTURE("wood_floor.tiff");
-		MESH m;
-		m.setAsFloor(tx);
-		geometry.meshes.push_back(m);
-	}
 
 	// ADDS BOX
+	//{
+	//	TEXTURE* tx = new TEXTURE("mineman.tiff");
+	//	MESH m;
+	//	m.setAsBox(V3(30.0f, -40.0f, -350.0f), tx, 20.0f, 20.0f, 20.0f);
+	//	m.fix_normals();
+	//	m.fill = true;
+	//	geometry.meshes.push_back(m);
+	//}
+
+	// SPHERE
+	//{
+	//	TEXTURE* tx = new TEXTURE("ball.tiff");
+	//	MESH m;
+	//	m.setAsSphere(V3(80.0f, -40.0f, -300.0f), 12U, 10.0f, tx);
+	//	m.fix_normals();
+	//	m.fill = true;
+	//	geometry.meshes.push_back(m);
+	//}
+
+	// ADD CAMERA VISUALIZATION
+	//{
+	//	PPC p;
+	//	geometry.add_camera(p);
+	//}
+
+	// ADDS DOOR
 	{
 		TEXTURE* tx = new TEXTURE("door.tiff");
 		tx->transform(true, false, false);
@@ -55,42 +71,37 @@ Scene::Scene() {
 		geometry.meshes.push_back(m);
 	}
 
-	// ADDS BOX
+	// ADD 2ND LIGHT SOURCE
 	{
-		TEXTURE* tx = new TEXTURE("mineman.tiff");
-		MESH m;
-		m.setAsBox(V3(30.0f, -40.0f, -350.0f), tx, 20.0f, 20.0f, 20.0f);
-		m.fix_normals();
-		m.fill = true;
-		geometry.meshes.push_back(m);
+		V3 center = V3(20.0f, -20.0f, -50.0f);
+		V3 origin = V3(0.0f, 80.0f, 100.0f);
+		LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(50.0f));
+		geometry.lights.push_back(li);
+	}
+
+	// ADD 1ST LIGHT SOURCE
+	{
+		V3 center = V3(-10.0f, 18.0f, 18.0f);
+		V3 origin = V3(0.0f, 60.0f, 110.0f);
+		LIGHT li = LIGHT(origin, center - origin, COLOR(255, 0, 0), DEG_TO_RAD(40.0f));
+		geometry.lights.push_back(li);
 	}
 
 	// SPHERE
 	{
-		TEXTURE* tx = new TEXTURE("ball.tiff");
 		MESH m;
-		m.setAsSphere(V3(80.0f, -40.0f, -300.0f), 12U, 10.0f, tx);
+		TEXTURE* tx = new TEXTURE("door.tiff");
+		m.setAsFloor(tx);
 		m.fix_normals();
 		m.fill = true;
 		geometry.meshes.push_back(m);
 	}
-
-	// ADD CAMERA VISUALIZATION
-	//{
-	//	PPC p;
-	//	geometry.add_camera(p);
-	//}
-
-
-
-
-	
 
 	rotation_axis1 = V3(0.0f, -1.0f, -1.0f);
 	rotation_axis2 = V3(0.0f, 1.0f, 1.0f);
 
 	int u0 = 16, v0 = 40;
-	fb = new FrameBuffer(u0, v0, w, h);
+	fb = new FRAMEBUFFER(u0, v0, w, h);
 	fb->position(u0, v0);
 	fb->label("SW framebuffer");
 	fb->show();
@@ -116,6 +127,7 @@ void Scene::LoadBinButton() {
 void Scene::TeapotButton() {
 	MESH m;
 	m.Load334Bin();
+	cout << "CENTER: " << m.get_center();
 	geometry.meshes.push_back(m);
 	fb->redraw();
 }

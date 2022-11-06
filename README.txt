@@ -1,22 +1,17 @@
-
-
-DO NOTE 
-
 Movie name: MOVIE.mov (uploaded separately to this zip)
 
-Digital Photographs:
-	- Door
-	- Wood Flooring
-	- Football
-Non-Digital Photos:
-	- Minecraft grass block.
+NOTE: I modified the color of the teapot to make it easier to see reflections.
 
-GUI is same as last time. WASD and arrow keys are the main controls.
-	- NOTE: DO NOT USE ANY GUI BUTTONS I HAVE NOT TOLD YOU TO USE.
-			I have removed a lot of past code for showcases and they probably don't work.
+Steps:
+	- Run .exe.
+	- Click 'Load Teapot' Button in GUI.
+	- User Arrow Keys and E/R to pan/roll/tilt about the object.
+	- WASD to move (if you like).
+	- Adjust specular via '+PhongExp' and '-PhongExp' in GUI.
+	- Click 't' to toggle between the teapot being a mirror vs. regular object.
+	- Click 'y' to toggle between bilinear interpolation vs. mip-mapping.
 
-INSTRUCTIONS:
-	1. Run exe.
-	2. Click 'Load Txt' to switch to PPC to a better viewing angle.
-	2. Press 'K' and 'L' to increase texture tiling.
-	3. Press 'N' and 'M' to turn mirroring off.
+Extra Credit: Viewable in EXTRA.mov.
+	- Refraction: Square piece of glass in the middle of the screen. Math lies in the if-statement at line 99 of frambuffer.cpp.
+	- Panarama: Called "panarama.tiff" in folder. Format-specific read starts at line 74 of frambuffer.hpp.
+	- Mipmapping: Functions start at line 61 and 93 of Geometry.hpp. 

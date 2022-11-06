@@ -12,8 +12,9 @@
 class Scene {
 public:
 	GUI* gui;
-	FrameBuffer* fb;
+	FRAMEBUFFER* fb;
 	PPC* ppc;
+	BACKDROP* bd;
 
 	U32 w, h;
 

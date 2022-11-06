@@ -7,17 +7,20 @@ PPC::PPC() {
 }
 
 void PPC::pan(float alpha) {
-	M33 rot = M33::get_rotation_matrix(C, C - b, alpha);
+	M33 rot = M33::get_rotation_matrix(V3(0,0,0), b, alpha);
+	C *= rot;
 	rotate(rot);
 }
 
 void PPC::tilt(float alpha) {
-	M33 rot = M33::get_rotation_matrix(C, C + a, alpha);
+	M33 rot = M33::get_rotation_matrix(a, V3(0, 0, 0), alpha);
+	C *= rot;
 	rotate(rot);
 }
 
 void PPC::roll(float alpha) {
-	M33 rot = M33::get_rotation_matrix(C, C + (a ^ b), alpha);
+	M33 rot = M33::get_rotation_matrix(C, V3(0, 0, 0), alpha);
+	C *= rot;
 	rotate(rot);
 }
 
@@ -33,7 +36,7 @@ void PPC::rotate(M33& rot) {
 void PPC::reset() {
 	float hfovd = DEG_TO_RAD(60.0f);
 
-	C = V3(0.0f, 0.0f, 0.0f);
+	C = V3(0.0f, 0.0f, 150.0f);
 
 	a = V3(1.0f, 0.0f, 0.0f);
 	b = V3(0.0f, -1.0f, 0.0f);
@@ -94,6 +97,10 @@ bool PPC::project(V3 P, V3& new_p) {
 
 V3 PPC::unproject(V3 pP) {
 	return C + (a * pP[Dim::X] + b * pP[Dim::Y] + c) / pP[Dim::Z];
+}
+
+V3 PPC::directional_unproject(V3 pP) {
+	return a * pP[Dim::X] + b * pP[Dim::Y] + c;
 }
 
 void PPC::interpolate(PPC& cam1, PPC& cam2, float t) {

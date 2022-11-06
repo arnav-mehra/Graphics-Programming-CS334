@@ -32,6 +32,7 @@ public:
 
 	COLOR();
 	COLOR(U32 v);
+	COLOR(V3 col);
 	COLOR(U32 r, U32 g, U32 b);
 	
 	COLOR operator*(const float c);
@@ -43,21 +44,65 @@ public:
 	U32 getR() const;
 	U32 getG() const;
 	U32 getB() const;
+	float getBrightness() {
+		return (getR() + getG() + getB()) / (3.0f * 255.0f);
+	}
 };
 
 class TEXTURE {
 public:
 	U32 w, h;
 	vector<vector<COLOR>> texture;
+	vector<vector<vector<COLOR>>*> mipmap;
 
 	TEXTURE();
 	TEXTURE(char* fName);
 
+	void initMipMap() {
+		mipmap.push_back(&texture);
+		while (true) {
+			vector<vector<COLOR>>& prev = *(mipmap.back());
+			mipmap.push_back(new vector<vector<COLOR>>());
+			vector<vector<COLOR>>& next = *(mipmap.back());
+
+			int h = prev.size() >> 1;
+			int w = h == 0 ? 0 : prev[0].size() >> 1;
+			next.resize(h, vector<COLOR>(w));
+			for (int x = 0; x < w; x++) {
+				for (int y = 0; y < h; y++) {
+					COLOR c = prev[y * 2][x * 2] * 0.25f
+						+ prev[y * 2 + 1][x * 2] * 0.25f
+						+ prev[y * 2][x * 2 + 1] * 0.25f
+						+ prev[y * 2 + 1][x * 2 + 1] * 0.25f;
+					next[y][x] = c;
+				}
+			}
+
+			if (w <= 1 || h <= 1) break;
+		}
+	}
+
 	void transform(bool transposed, bool x_mirror, bool y_mirror);
+	
 	COLOR& get(int x, int y) {
 		x = max(0, min(x, (int)w - 1));
 		y = max(0, min(y, (int)h - 1));
 		return texture[y][x];
+	}
+
+	COLOR& getMip(float x, float y) {
+		COLOR sol;
+		for (int i = mipmap.size() - 1; i >= 0; i--) {
+			vector<vector<COLOR>>& map = *(mipmap[i]);
+			float hl = map.size() - 1.0f, wl = map[0].size() - 1.0f;
+			COLOR curr = map[roundf(y * hl)][roundf(x * wl)];
+			if (i == mipmap.size() - 1) {
+				sol = curr;
+			} else {
+				sol = sol * 0.8f + curr * 0.2f; // current is 4x the area, so 80/20 split
+			}
+		}
+		return sol;
 	}
 };
 
@@ -147,6 +192,29 @@ public:
 	void setAsSphere(V3 center, U32 hres, float radius, TEXTURE* tx);
 	void setAsCylinder(V3 center, U32 res, float height, float radius);
 	void setAsFloor(TEXTURE* tx);
+	void setAsGlass() {
+		TRIANGLE t1 = TRIANGLE({
+			V3(-20.0f, -20.0f, 0),
+			V3(-20.0f, 20.0f, 0),
+			V3(20.0f, 20.0f, 0),			
+		});
+		TRIANGLE t2 = TRIANGLE({
+			V3(-20.0f, -20.0f, 0),
+			V3(20.0f, -20.0f, 0),
+			V3(20.0f, 20.0f, 0),
+		});
+
+		t1.phong_exp = -1.0f;
+		t1.norms = { V3(0,0,1), V3(0,0,1), V3(0,0,1) };
+		t1.norm = V3(0, 0, 1);
+
+		t2.phong_exp = -1.0f;
+		t2.norms = { V3(0,0,1), V3(0,0,1), V3(0,0,1) };
+		t2.norm = V3(0, 0, 1);
+
+		this->add_triangle(t1);
+		this->add_triangle(t2);
+	}
 
 	void spherical_interpolation(float t, float res);
 

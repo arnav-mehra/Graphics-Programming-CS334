@@ -14,6 +14,13 @@ COLOR::COLOR(U32 v) {
 	value = v;
 }
 
+COLOR::COLOR(V3 col) {
+	U32 r = min((U32)col[Dim::X], 255U);
+	U32 g = min((U32)col[Dim::Y], 255U);
+	U32 b = min((U32)col[Dim::Z], 255U);
+	value = (b << 16) | (g << 8) | r;
+}
+
 COLOR::COLOR(U32 r, U32 g, U32 b) {
 	r = min(r, 255U);
 	g = min(g, 255U);
@@ -86,6 +93,12 @@ COLOR INTERPOLATE::getColor(TRIANGLE& tri, COLOR& c1, COLOR& c2, COLOR& c3, V3& 
 }
 
 TEXTURE::TEXTURE() {}
+
+TEXTURE::TEXTURE(COLOR c) {
+	w = 1;
+	h = 1;
+	texture.resize(h, vector<COLOR>(w, c));
+}
 
 TEXTURE::TEXTURE(char* fName) {
 	TIFF* in = TIFFOpen(fName, "r");
@@ -165,7 +178,7 @@ COLOR TEXTURE_META::proj(V3 p) {
 	V3 coord = t * p;
 	float xf = coord[Dim::X] * tile_factor;
 	float yf = coord[Dim::Y] * tile_factor;
-	
+
 	bool x_mirrored = ((int)round(xf) / tx->w) % 2;
 	bool y_mirrored = ((int)round(yf) / tx->h) % 2;
 
@@ -175,7 +188,7 @@ COLOR TEXTURE_META::proj(V3 p) {
 		if (x_mirrored) xf = (float)tx->w - 1.0f - xf;
 		if (y_mirrored) yf = (float)tx->h - 1.0f - yf;
 	}
-	
+
 	int x1 = (int)floorf(xf);
 	int y1 = (int)floorf(yf);
 	int x2 = (int)ceilf(xf);
@@ -219,7 +232,7 @@ SEGMENT::SEGMENT(SPHERE start, SPHERE end, U32 width) : SEGMENT(start, end) {
 }
 
 TRIANGLE::TRIANGLE() {
-	phong_exp = 50.0f;
+	phong_exp = 1.0f;
 	width = 8U;
 }
 
@@ -266,43 +279,6 @@ void MESH::add_mirroring(bool m) {
 	for (int i = 0; i < triangles.size(); i += 2) {
 		triangles[i].tm->mirroring = m;
 	}
-}
-
-void MESH::add_triangle(TRIANGLE tri) {
-	V3& p1 = tri.points[0];
-	V3& p2 = tri.points[1];
-	V3& p3 = tri.points[2];
-
-	vector<int> temp = { -1, -1, -1 };
-	edge_connectivity.push_back(temp);
-	vector<int>& ec = edge_connectivity.back();
-
-	for (int i = 0; i < triangles.size(); i++) {
-		V3& t1 = triangles[i].points[0];
-		V3& t2 = triangles[i].points[1];
-		if ((p1 == t1 || p1 == t2) && (p2 == t1 || p2 == t2)) {
-			ec[0] = i;
-			break;
-		}
-	}
-	for (int i = 0; i < triangles.size(); i++) {
-		V3& t2 = triangles[i].points[1];
-		V3& t3 = triangles[i].points[2];
-		if ((p2 == t2 || p2 == t3) && (p3 == t2 || p3 == t3)) {
-			ec[1] = i;
-			break;
-		}
-	}
-	for (int i = 0; i < triangles.size(); i++) {
-		V3& t1 = triangles[i].points[0];
-		V3& t3 = triangles[i].points[2];
-		if ((p3 == t3 || p3 == t1) && (p1 == t3 || p1 == t1)) {
-			ec[2] = i;
-			break;
-		}
-	}
-
-	triangles.push_back(tri);
 }
 
 void MESH::fix_normals() {
@@ -549,21 +525,24 @@ void MESH::setAsCylinder(V3 center, U32 res, float height, float rad) {
 void MESH::setAsFloor(TEXTURE* tx) {
 	triangles.clear();
 	float y = -50.0f;
-	float x = -100.0f;
-	float z = -400.0f;
-	TEXTURE_META* tm = new TEXTURE_META();
-	TRIANGLE t1 = TRIANGLE({
-		V3(x, y, z),
-		V3(x + 200.0f, y, z),
-		V3(x + 200.0f, y, z + 200.0f)
-	}, tm);
-	*tm = TEXTURE_META(t1.points, tx, 1);
-	TRIANGLE t2 = TRIANGLE({
-		V3(x + 200.0f, y, z + 200.0f),
-		V3(x, y, z + 200.0f),
-		V3(x, y, z)		
-	}, tm);
-	*this = MESH({ t1, t2 });
+	for (int x = -500.0f; x <= 500.0f; x += 50.0f) {
+		for (int z = -500.0f; z <= 500.0f; z += 50.0f) {
+			TEXTURE_META* tm = new TEXTURE_META();
+			TRIANGLE t1 = TRIANGLE({
+				V3(x, y, z),
+				V3(x + 50.0f, y, z),
+				V3(x + 50.0f, y, z + 50.0f)
+				}, tm);
+			*tm = TEXTURE_META(t1.points, tx, 1);
+			TRIANGLE t2 = TRIANGLE({
+				V3(x + 50.0f, y, z + 50.0f),
+				V3(x, y, z + 50.0f),
+				V3(x, y, z)
+			}, tm);
+			this->add_triangle(t1);
+			this->add_triangle(t2);
+		}
+	}
 	fill = true;
 }
 
@@ -577,7 +556,7 @@ void MESH::LoadBin() {
 void MESH::Load334Bin() {
 	ifstream ifs("teapot1K.bin", ios::binary);
 	if (ifs.fail()) {
-		cerr << "INFO: cannot open file: ";
+		cerr << "INFO: cannot open file: " << endl;
 		return;
 	}
 
@@ -586,35 +565,46 @@ void MESH::Load334Bin() {
 
 	char yn;
 	ifs.read(&yn, 1); // always xyz
-	if (yn != 'y') return; // :(
+	if (yn != 'y') {
+		cerr << "INTERNAL ERROR: there should always be vertex xyz data" << endl;
+		return;
+	}
 
-	V3* verts = new V3[vertsN];
-	V3* cols = new V3[vertsN];
-	V3* normals = new V3[vertsN];
-	float* tcs = new float[vertsN * 2]; // don't have texture coordinates for now
+	V3* verts = 0;
+	V3* cols = 0;
+	V3* normals = 0;
+	U32* tris = 0;
 
+	verts = new V3[vertsN];
 	ifs.read(&yn, 1); // cols 3 floats
+	if (yn == 'y') cols = new V3[vertsN];
+
 	ifs.read(&yn, 1); // normals 3 floats
+	normals = 0;
+	if (yn == 'y') normals = new V3[vertsN];
+
 	ifs.read(&yn, 1); // texture coordinates 2 floats
+	float* tcs = 0; // don't have texture coordinates for now
+	if (tcs) delete tcs;
+	if (yn == 'y') tcs = new float[vertsN * 2];
 
 	ifs.read((char*)verts, vertsN * 3 * sizeof(float)); // load verts
-	ifs.read((char*)cols, vertsN * 3 * sizeof(float)); // load cols
-	ifs.read((char*)normals, vertsN * 3 * sizeof(float)); // load normals
-	ifs.read((char*)tcs, vertsN * 2 * sizeof(float)); // load texture coordinates
-		
+	if (cols) ifs.read((char*)cols, vertsN * 3 * sizeof(float)); // load cols
+	if (normals) ifs.read((char*)normals, vertsN * 3 * sizeof(float)); // load normals
+	if (tcs) ifs.read((char*)tcs, vertsN * 2 * sizeof(float)); // load texture coordinates
+
 	int trisN;
 	ifs.read((char*)&trisN, sizeof(int));
-	
-	unsigned int* tris = new unsigned int[trisN * 3];
-	ifs.read((char*)tris, trisN * 3 * sizeof(unsigned int)); // read triangles
+
+	tris = new unsigned int[trisN * 3];
+	ifs.read((char*)tris, trisN * 3 * sizeof(unsigned int)); // read tiangles
 
 	ifs.close();
+
 
 	for (int i = 0; i < vertsN; i++) {
 		cols[i] *= 255.0f;
 	}
-
-	cout << vertsN << " : " << trisN << "\n";
 
 	MESH m;
 	for (int i = 0; i < trisN; i++) {
@@ -626,19 +616,18 @@ void MESH::Load334Bin() {
 		tri.points[0] = verts[a];
 		tri.points[1] = verts[b];
 		tri.points[2] = verts[c];
-		if (cols) {
-			tri.colors[0] = COLOR(cols[a][Dim::X], cols[a][Dim::Y], cols[a][Dim::Z]);
-			tri.colors[1] = COLOR(cols[b][Dim::X], cols[b][Dim::Y], cols[b][Dim::Z]);
-			tri.colors[2] = COLOR(cols[c][Dim::X], cols[c][Dim::Y], cols[c][Dim::Z]);
-		}
+		tri.colors[0] = COLOR(0, 200, 200);
+		tri.colors[1] = COLOR(0, 200, 200);
+		tri.colors[2] = COLOR(0, 200, 200);
+
+		tri.norms = { normals[a], normals[b], normals[c] };
+		tri.norm = normals[a] + normals[b] + normals[c];
+		tri.norm.normalize();
+
 		m.add_triangle(tri);
-		m.triangles.back().norms = { normals[a], normals[b], normals[c] };
-		V3 norm = normals[a] + normals[b] + normals[c];
-		norm.normalize();
-		m.triangles.back().norm = norm;
 	}
 	m.fill = true;
-	m.translate(V3(0, 0, -40.0f));
+	m.translate(m.get_center() * -1.0f);
 	*this = m;
 
 	free(verts); verts = nullptr;

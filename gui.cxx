@@ -323,7 +323,7 @@ void GUI::LightBackButton_cb() {
 
 void GUI::LightIncExponentButton_cb() {
     float& exp = scene->phong_exp;
-    exp = min(1000.0f, exp + 5.0f);
+    exp *= 2.0f;
     cout << "New Phong Exponent: " << exp << '\n';
     scene->geometry.meshes[SEL_MESH].set_phong_exp(exp);
     scene->fb->redraw();
@@ -331,7 +331,7 @@ void GUI::LightIncExponentButton_cb() {
 
 void GUI::LightDecExponentButton_cb() {
     float& exp = scene->phong_exp;
-    exp = max(0.0f, exp - 5.0f);
+    exp *= 0.5f;
     cout << "New Phong Exponent: " << exp << '\n';
     scene->geometry.meshes[SEL_MESH].set_phong_exp(exp);
     scene->fb->redraw();

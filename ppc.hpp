@@ -17,6 +17,7 @@ public:
 	
 	bool project(V3 P, V3& new_p);
 	V3 unproject(V3 pP);
+	V3 directional_unproject(V3 pP);
 
 	void pan(float alpha);
 	void tilt(float alpha);

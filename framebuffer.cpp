@@ -10,10 +10,12 @@
 
 #define SHOW_SCENE_INTERPOLATION true
 #define SHOW_SPHERICAL_INTERPOLATION false
+bool IS_MIRROR = false;
+bool USE_MIPMAP = false;
 
 using namespace std;
 
-FrameBuffer::FrameBuffer(int u0, int v0, U32 _w, U32 _h) : Fl_Gl_Window(u0, v0, (int) _w, (int) _h, 0) {
+FRAMEBUFFER::FRAMEBUFFER(int u0, int v0, U32 _w, U32 _h) : Fl_Gl_Window(u0, v0, (int) _w, (int) _h, 0) {
 	w = _w;
 	h = _h;
 	pix = new unsigned int[w * h];
@@ -23,7 +25,7 @@ FrameBuffer::FrameBuffer(int u0, int v0, U32 _w, U32 _h) : Fl_Gl_Window(u0, v0, 
 
 void nextFrame(void* window) {
 	auto time_start = std::chrono::system_clock::now();
-	FrameBuffer* fb = (FrameBuffer*)window;
+	FRAMEBUFFER* fb = (FRAMEBUFFER*)window;
 
 	fb->frame++;
 	if (fb->transition1 < 1.4f) {
@@ -44,13 +46,13 @@ void nextFrame(void* window) {
 	Fl::repeat_timeout(adjustment, nextFrame, window);
 }
 
-void FrameBuffer::startThread() {
+void FRAMEBUFFER::startThread() {
 	transition1 = 0.0f;
 	transition2 = 0.0f;
 	Fl::add_timeout(1.0f / FPS, nextFrame, this);
 }
 
-void FrameBuffer::applyGeometry() {
+void FRAMEBUFFER::applyGeometry() {
 	compute.recompute_geometry();
 
 	// reset buffers
@@ -77,7 +79,7 @@ void FrameBuffer::applyGeometry() {
 	applyLights();
 }
 
-inline void FrameBuffer::applyLights() {
+inline void FRAMEBUFFER::applyLights() {
 	for (U32 y = 0; y < h; y++) {
 		for (U32 x = 0; x < w; x++) {
 			const U32 p = y * w + x;
@@ -87,11 +89,53 @@ inline void FrameBuffer::applyLights() {
 			// get real_pos
 			V3 pos = V3(x, y, z_buffer[p]);
 			V3 real_pos = scene->ppc->unproject(pos);
-			// let there be light!
+
+			V3 norm;
+			V3 dir = scene->ppc->C - real_pos;
+			dir.normalize();
+
 			float light_scalar = scene->ambient;
+
+			if (tri.phong_exp == -1.0f) {
+				norm = tri.norm * (tri.norm * dir > 0 ? 1.0f : -1.0f);
+				float sin_theta = (dir ^ norm).length();
+				const float n1 = 1.0f, n2 = 1.52f;
+				float sin2_theta = n1 * sin_theta / n2;
+				float theta2 = asin(sin2_theta);
+				
+				V3 axis = dir ^ norm;
+				V3 new_dir = norm * -1.0f;
+				new_dir.rotate(axis, -theta2);
+				COLOR col = scene->bd->getColor(new_dir);
+				pix[p] = col.value;
+			}
+			else {
+				V3 a = scene->ppc->unproject(tri.points[0]);
+				V3 b = scene->ppc->unproject(tri.points[1]);
+				V3 c = scene->ppc->unproject(tri.points[2]);
+
+				M33 m = M33(a, b, c);
+				m.transpose();
+				M33 m_inv = m.inverse();
+				V3 coord = m_inv * real_pos;
+
+				norm = tri.norms[0] * coord[0] + tri.norms[1] * coord[1] + tri.norms[2] * coord[2];
+				norm.normalize();
+				if (isinf(norm[Dim::X]) || isnan(-norm[Dim::X])) norm = tri.norm;
+
+				V3 proj = norm * (dir * norm);
+				V3 ref = proj * 2.0f - dir;
+				ref.normalize();
+				COLOR col = scene->bd->getColor(ref);
+				if (IS_MIRROR) pix[p] = col.value;
+				float specular = pow(fabsf(dir * ref), tri.phong_exp);
+				light_scalar += col.getBrightness() * specular;
+			}			
+
+			// let there be light!
 			for (int i = 0; i < compute.lights.size(); i++) {
 				LIGHT& li = compute.lights[i];
-				light_scalar += li.offset_lighting(real_pos, tri.norm, tri.phong_exp, compute.l_buffer[i]);
+				light_scalar += li.offset_lighting(real_pos, norm, tri.phong_exp, compute.l_buffer[i]);
 			}
 			//cout << light_scalar << '\n';
 			pix[p] = (COLOR(pix[p]) * light_scalar).value;
@@ -99,7 +143,7 @@ inline void FrameBuffer::applyLights() {
 	}
 }
 
-inline void FrameBuffer::applySphere(SPHERE& sphere) {
+inline void FRAMEBUFFER::applySphere(SPHERE& sphere) {
 	V3& point = sphere.point;
 	const U32 HALF_DOT = sphere.width >> 1;
 	const U32 HALF_DOT_SQUARE = HALF_DOT * HALF_DOT;
@@ -136,7 +180,7 @@ inline void FrameBuffer::applySphere(SPHERE& sphere) {
 	}
 }
 
-inline void FrameBuffer::applySegment(U32 i) {
+inline void FRAMEBUFFER::applySegment(U32 i) {
 	SEGMENT& segment = compute.segments[i];
 	V3& start = segment.start.point;
 	V3& end = segment.end.point;
@@ -192,7 +236,7 @@ inline void FrameBuffer::applySegment(U32 i) {
 	}
 }
 
-inline void FrameBuffer::applyTriangle(U32 i) {
+inline void FRAMEBUFFER::applyTriangle(U32 i) {
 	TRIANGLE& tri = compute.triangles[i];
 	V3& p1 = tri.points[0];
 	V3& p2 = tri.points[1];
@@ -272,7 +316,7 @@ inline void FrameBuffer::applyTriangle(U32 i) {
 	}
 }
 
-inline void FrameBuffer::applyTriangleLight(U32 t_i, U32 l_i) {
+inline void FRAMEBUFFER::applyTriangleLight(U32 t_i, U32 l_i) {
 	LIGHT& li = compute.lights[l_i];
 	TRIANGLE& tri = compute.triangles[t_i];
 	V3& pp1 = tri.points[0];
@@ -339,13 +383,14 @@ inline void FrameBuffer::applyTriangleLight(U32 t_i, U32 l_i) {
 	}
 }
 
-void FrameBuffer::draw() {
-	SetBGR(0);
+void FRAMEBUFFER::draw() {
+	setBackdrop();
+	//SetBGR(0);
 	applyGeometry();
 	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 }
 
-int FrameBuffer::handle(int event) {
+int FRAMEBUFFER::handle(int event) {
 	switch (event) {
 		case FL_KEYBOARD: {
 			KeyboardHandle();
@@ -362,15 +407,17 @@ int FrameBuffer::handle(int event) {
 	return 0;
 }
 
-void FrameBuffer::KeyboardHandle() {
+void FRAMEBUFFER::KeyboardHandle() {
 	int key = Fl::event_key();
 	switch (key) {
+		case 'y': USE_MIPMAP = !USE_MIPMAP; break;
+		case 't': IS_MIRROR = !IS_MIRROR; break;
 		// PAN
 		case FL_Left: scene->ppc->pan(0.03f); break;
 		case FL_Right: scene->ppc->pan(-0.03f); break;
 		// TILT
-		case FL_Up: scene->ppc->tilt(-0.01f); break; 
-		case FL_Down: scene->ppc->tilt(0.01f); break;
+		case FL_Up: scene->ppc->tilt(-0.03f); break; 
+		case FL_Down: scene->ppc->tilt(0.03f); break;
 		// ROLL
 		case 'e': scene->ppc->roll(-0.01f); break;
 		case 'r': scene->ppc->roll(0.01f); break; 
@@ -397,13 +444,34 @@ void FrameBuffer::KeyboardHandle() {
 	redraw();
 }
 
-void FrameBuffer::SetBGR(unsigned int bgr) {
+void FRAMEBUFFER::SetBGR(unsigned int bgr) {
 	for (U32 uv = 0; uv < w * h; uv++)
 		pix[uv] = bgr;
 }
 
+void FRAMEBUFFER::setBackdrop() {
+	if (scene->bd == nullptr) { // no background
+		for (U32 y = 0; y < h; y++) {
+			for (U32 x = 0; x < w; x++) {
+				U32 px = y * w + x;
+				pix[px] = COLOR(0, 0, 0).value;
+			}
+		}
+		return;
+	}
+	for (U32 y = 0; y < h; y++) {
+		for (U32 x = 0; x < w; x++) {
+			V3 p = V3(x, y, 0.0f);
+			V3 dir = scene->ppc->directional_unproject(p);
+			U32 px = y * w + x;
+			COLOR inter = scene->bd->getColor(dir);
+			pix[px] = inter.value;
+		}
+	}
+}
+
 // load a tiff image to pixel buffer
-void FrameBuffer::LoadTiff() {
+void FRAMEBUFFER::LoadTiff() {
 	TIFF* in = TIFFOpen(TIFF_FILE_IN, "r");
 
 	if (in == NULL) {
@@ -433,7 +501,7 @@ void FrameBuffer::LoadTiff() {
 }
 
 // save as tiff image
-void FrameBuffer::SaveAsTiff() {
+void FRAMEBUFFER::SaveAsTiff() {
 	TIFF* out = TIFFOpen(TIFF_FILE_OUT, "w");
 
 	if (out == NULL) {
@@ -456,7 +524,7 @@ void FrameBuffer::SaveAsTiff() {
 	TIFFClose(out);
 }
 
-void FrameBuffer::SaveAsTiff(const char* fname) {
+void FRAMEBUFFER::SaveAsTiff(const char* fname) {
 	TIFF* out = TIFFOpen(fname, "w");
 
 	if (out == NULL) {
