@@ -1,3 +1,6 @@
+Note: This ReadMe was originally for graders of an assignment within this course, but the same steps can be followed to see the engine working.
+Additionally, this is an older version of the engine, and I plan to make the final/current engine public once I am done cleaning it.
+
 INSTRUCTIONS:
 	
 	SEGMENT/CIRCLE/TRIANGLE, GEOMETRY SHOWCASE:
@@ -24,12 +27,6 @@ INSTRUCTIONS:
 		4. Press left/right keys to control bottom player.
 		5. Press top/bottom keys to control top player.
 		6. Check the terminal for the current score.
-
-	EXTRA CREDIT - TETRIS:
-		I think you know the drill.
-		Left/Right key to move left/right.
-		'r' to rotate.
-		Score is printed to terminal.
 
 BUTTONS:
 
